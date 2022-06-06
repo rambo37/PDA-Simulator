@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" alignment="CENTER" maxHeight="-Infinity"
+      maxWidth="-Infinity"
+      minHeight="-Infinity"
+      minWidth="-Infinity" prefHeight="300.0" spacing="20.0" stylesheets="@../CSS/textField.css"
+      xmlns="http://javafx.com/javafx/17"
+      fx:controller="PDA_Simulator.Frontend.PDAStateNodeController">
+    <Label text="Leave blank for empty string"/>
+    <HBox alignment="CENTER" prefHeight="62.0" prefWidth="600.0" spacing="5.0">
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+            <Label text="Current state:"/>
+            <Label fx:id="currentStateLabel" prefHeight="25.0"/>
+        </VBox>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+            <Label text="Input symbol"/>
+            <TextField fx:id="inputSymbolTextField"/>
+        </VBox>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+            <Label fx:id="popLabel" text="Pop symbol"/>
+            <TextField fx:id="popTextField"/>
+        </VBox>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+            <Label fx:id="pushLabel" text="Push symbol"/>
+            <TextField fx:id="pushTextField"/>
+        </VBox>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+            <Label text="New state:"/>
+            <Label fx:id="newStateLabel" prefHeight="25.0"/>
+        </VBox>
+    </HBox>
+    <Label fx:id="errorLabel" textFill="red" visible="false">The transition you specified already
+        exists
+    </Label>
+</VBox>

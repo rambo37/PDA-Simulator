@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<SplitPane xmlns:fx="http://javafx.com/fxml/1" dividerPositions="0.7" maxHeight="-Infinity"
+           maxWidth="-Infinity"
+           minHeight="-Infinity"
+           minWidth="-Infinity" orientation="VERTICAL"
+           xmlns="http://javafx.com/javafx/17"
+           fx:controller="PDA_Simulator.Frontend.StepByStepController">
+    <SplitPane dividerPositions="0.7">
+        <ScrollPane fx:id="pdaScrollPane" fitToHeight="true" fitToWidth="true"/>
+        <ScrollPane fitToHeight="true" fitToWidth="true" minHeight="0" minWidth="0">
+            <VBox spacing="10.0">
+                <Label text="Transition Table">
+                    <VBox.margin>
+                        <Insets left="10.0" top="10.0"/>
+                    </VBox.margin>
+                    <font>
+                        <Font name="System Bold" size="15.0"/>
+                    </font>
+                </Label>
+                <TableView fx:id="transitionTable">
+                    <columns>
+                        <TableColumn fx:id="currentState" minWidth="90.0" sortable="false"
+                                     text="Current state"/>
+                        <TableColumn fx:id="inputSymbol" minWidth="90.0" sortable="false"
+                                     text="Input symbol"/>
+                        <TableColumn fx:id="pop" minWidth="90.0" sortable="false"
+                                     text="Pop symbol"/>
+                        <TableColumn fx:id="push" minWidth="90.0" sortable="false"
+                                     text="Push symbol"/>
+                        <TableColumn fx:id="newState" minWidth="90.0" sortable="false"
+                                     text="New state"/>
+                    </columns>
+                    <VBox.margin>
+                        <Insets left="10.0" right="10.0"/>
+                    </VBox.margin>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                </TableView>
+            </VBox>
+        </ScrollPane>
+    </SplitPane>
+    <ScrollPane>
+        <FlowPane fx:id="flowPane"/>
+    </ScrollPane>
+</SplitPane>

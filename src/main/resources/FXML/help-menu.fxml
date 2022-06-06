@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.*?>
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="-Infinity" maxWidth="-Infinity"
+            minHeight="-Infinity"
+            minWidth="-Infinity" prefHeight="500.0" prefWidth="500.0"
+            xmlns="http://javafx.com/javafx/17">
+    <VBox spacing="10.0">
+        <padding>
+            <Insets left="10.0" right="10.0"/>
+        </padding>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="About" underline="true">
+            <font>
+                <Font name="System Bold" size="20.0"/>
+            </font>
+        </Text>
+        <Label wrapText="true">PDA Simulator is an application which allows you to create, load,
+            save and run pushdown automata. It includes support for various equivalent definitions
+            which are explained below.
+        </Label>
+        <Label text="There are several general pieces of information to know."/>
+        <Label wrapText="true">Firstly, both the input and stack alphabets are identical and include
+            most keyboard characters with the exception of all kinds of parentheses, commas, forward
+            slashes, backslashes and the equals symbol. Spaces are not permitted anywhere except for
+            the notes section which is unmonitored.
+        </Label>
+        <Label wrapText="true">There are various text fields which can be typed in. Most of these
+            contain at least some form of input validation. Whenever a text field is asking for a
+            symbol, only a maximum of a single character can be entered. Where applicable, you can
+            specify epsilon (the empty string) by leaving the text field blank. The word "null" is
+            not usable in any text fields (except the notes area).
+        </Label>
+        <Label wrapText="true">To create pushdown automata, you can either use the canvas area on
+            the left or the transition table on the right. States can be turned into accepting
+            states by ticking the checkbox within them. To change the initial state or to delete a
+            state, you must right-click on a state and select the desired option. Deleting a state
+            also deletes all incoming and outgoing transitions to/from the deleted state. States can
+            be renamed by double-clicking on the state name in the node. The nodes can be moved
+            around by clicking and dragging them in any of the light blue parts. Transitions can be
+            created by clicking and dragging from the blue square of one node to another node (which
+            can also be the same node). If creating a transition from a node to itself, you can
+            alternatively just click on the blue square. To edit or delete a transition, click on
+            the label of the transition you wish to edit/delete.
+        </Label>
+        <Label wrapText="true">The transition table is another way of creating pushdown automata by
+            specifying all of the transitions. If you enter a state name that does not exist, a
+            state with that name will automatically be created. There are however some things that
+            cannot be specified in the transition table format such as the initial state or
+            accepting states. The table supports editing - you can do this by double-clicking on a
+            table cell. Note that if your edit does not go through, the transition you tried to edit
+            into already exists. To add to the transition table, enter the transition into the text
+            fields beneath the table and press the add transition button. To easily delete a
+            transition, you can click on the table row with the transition to fill out the text
+            fields automatically and then press the delete transition button.
+        </Label>
+        <Label wrapText="true">The vertical and horizontal separators can be dragged to allow you to
+            focus on whatever is important to you.
+        </Label>
+        <Label wrapText="true">This simulator supports popping and pushing of strings of symbols to
+            the stack. When a string is pushed to the stack, the string is pushed onto the stack in
+            reverse order. This ensures the first character of the string ends up at the top of the
+            stack once it has been pushed. For example, if you push "abc" onto the stack, the stack
+            contains "a", "b", "c" from top to bottom. And if the stack reads "a", "b", "c" from top
+            to bottom, it is possible to pop either "a", "ab", "abc" or nothing. It is not possible
+            to pop "b", "bc" or "c" since there is an "a" at the top.
+        </Label>
+        <Separator prefWidth="200.0"/>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Acceptance criteria" underline="true">
+            <font>
+                <Font name="System Bold" size="20.0"/>
+            </font>
+        </Text>
+        <Label>There are three different kinds of acceptance criteria supported by this simulator.
+        </Label>
+        <Label wrapText="true">The accepting state acceptance criteria accepts strings if after
+            consuming all input symbols, the PDA ends up in an accepting state - the state of the
+            stack is irrelevant.
+        </Label>
+        <Label wrapText="true">The empty stack acceptance criteria does not require there to be any
+            accepting states. The automaton can accept input strings if it can consume all input
+            symbols and end up with an empty stack. You can specify accepting states if you wish but
+            it makes no difference to the language accepted by the PDA.
+        </Label>
+        <Label wrapText="true">The final kind of acceptance criteria that you can use is acceptance
+            by both accepting state and empty stack. As with the other two acceptance criteria, the
+            input string must be completely consumed.
+        </Label>
+        <Label wrapText="true">Sample 1 uses the empty stack acceptance criteria. However, you could
+            easily change this automaton to use either of the other two acceptance criteria if you
+            make state q2 an accepting state. This is due to the fact that if the automaton ever
+            reaches state q2, the stack will be empty. Consequently, any of the three kinds of
+            acceptance criteria would work for this pushdown automaton (provided q2 is an accepting
+            state). But this is not guaranteed to be the case for any arbitrary PDA.
+        </Label>
+        <Separator prefWidth="200.0"/>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Stack" underline="true">
+            <font>
+                <Font name="System Bold" size="20.0"/>
+            </font>
+        </Text>
+        <Label wrapText="true">The stack has two options available. It can either start off empty or
+            it can start off containing a single initial symbol. The purpose of the initial stack
+            symbol is to serve as a marker that indicates the bottom of the stack has been reached.
+            The initial stack symbol can be any symbol in the stack alphabet. It is easy to see that
+            you can add an initial stack symbol manually by creating an epsilon transition from the
+            initial state to another state that consumes no input, pops nothing and pushes the
+            initial stack symbol to the stack. This is exactly what sample 4 does.
+        </Label>
+        <Label wrapText="true">If you are using either the "empty stack" or "both" acceptance
+            criteria in conjunction with an initial stack symbol, it is important to have a
+            transition that pops the initial stack symbol.
+        </Label>
+        <Separator prefWidth="200.0"/>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Transition functions" underline="true">
+            <font>
+                <Font name="System Bold" size="20.0"/>
+            </font>
+        </Text>
+        <Label>This simulator allows the selection of three different kinds of transition function.
+        </Label>
+        <Label wrapText="true">The first kind of transition function is the "pop symbol, push
+            symbol" transition function. This is the most restrictive transition function as it does
+            not allow for popping or pushing of strings of stack symbols. The second one allows only
+            for popping of a single symbol in a transition but for pushing of strings of stack
+            symbols. And the last one allows for popping and pushing of strings of stack symbols.
+            None of these transition functions are any different in terms of their expressive power.
+            Multi-popping and multi-pushing can be simulated with the single pop and single push
+            transition function. And of course, if you can pop/push strings of stack symbol, you
+            can pop/push single symbols.
+        </Label>
+        <Label wrapText="true">Some definitions of pushdown automata force the stack to be popped in
+            every transition. With this definition, if you want the net effect of a transition to
+            add to the stack, you would need to push a string of stack symbols that starts with the
+            topmost stack symbol. If mandatory popping was in place with the pop symbol and push
+            symbol transition function, then the stack would never be able to grow in size. To get
+            around the problem of mandatory popping, it is possible to pop the empty string
+            (epsilon). Transitions that pop nothing do not consult the stack at all. The ability to
+            pop nothing is not strictly necessary for the other transition functions that can push
+            multiple symbols to the stack in a single transition. However, it is a convenient
+            ability to have and it also ensures consistency between the transition functions which
+            is why it is permitted. Note that you can simulate mandatory popping by using either the
+            second or third transition function (either transition function that can push strings)
+            and manually always specifying the topmost stack symbol as the pop symbol/string in
+            every transition.
+        </Label>
+        <Label wrapText="true">Furthermore, in some literature there is a separation between what
+            the pushdown automaton reads and what the pushdown automaton pops. This makes it
+            possible to specify a transition that pops nothing but is only applicable if there is a
+            particular symbol at the top of the stack. For example, in the image below, the
+            transition from q0 to q1 only happens if the current state is q0, the current input
+            symbol is "a" and there is a "#" on the top of the stack. The transition then causes the
+            PDA to change state to q1 and push the symbol A onto the stack without popping anything
+            from the stack.
+        </Label>
+        <ImageView fitHeight="100.0" fitWidth="458.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@../Images/read-and-pop-transition.png"/>
+        </ImageView>
+        <Label wrapText="true">Although none of the transition functions in this simulator make the
+            separation between what is read and what is popped, it is still possible to model such a
+            transition. The image below demonstrates exactly this. Notice that both PDAs are
+            deterministic. The transition from q0 to q2 is essentially reading what is on the top of
+            the stack by popping the symbol and then pushing it back onto the stack. Meanwhile, the
+            transition from q2 to q1 performs the pushing that the original transition that is
+            being modelled does.
+        </Label>
+        <ImageView fitHeight="280.0" fitWidth="458.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@../Images/simulated-read-and-pop.png"/>
+        </ImageView>
+        <Label wrapText="true">At this point, it may seem like more of an inconvenience to
+            separate what is read from what is popped. But the reason for not doing this is to
+            make it more convenient to specify transitions that do not pop anything and are
+            applicable irrespective of the topmost stack symbol. Suppose you want a transition from
+            q0 to q1 that pops nothing and can be applied regardless of the topmost stack symbol. If
+            you have to specify what is read, you would then have to specify a transition for each
+            and every symbol in the stack alphabet. This would quickly become tedious to do and
+            difficult to read for a stack alphabet larger than just a few symbols.
+        </Label>
+        <Separator prefWidth="200.0"/>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Determinism" underline="true">
+            <font>
+                <Font name="System Bold" size="20.0"/>
+            </font>
+        </Text>
+        <Label wrapText="true">The way determinism is defined in this simulator is that there must
+            never be a choice of which transition to apply. If there is ever a choice, then the PDA
+            is nondeterministic. There are three criteria which must hold for a PDA to be
+            deterministic.
+        </Label>
+        <Label wrapText="true">There is at most a single transition for any combination of state,
+            input symbol and stack pop symbol/string. Having both (q0, a, A) -> (q1, ε) and (q0, a,
+            A) -> (q1, A) would make a PDA nondeterministic, for example.
+        </Label>
+        <Label wrapText="true">There cannot be both an epsilon transition and a transition that
+            consumes an input symbol in the same state for the same pop string. For example, you
+            cannot have both (q0, a, A) -> (q1, ε) and (q0, ε, A) -> (q1, ε) in a deterministic PDA.
+            This is the kind of nondeterminism in NFAs - you can either choose to consume an input
+            symbol or instead apply the epsilon transition.
+        </Label>
+        <Label wrapText="true">Finally, there cannot be both a transition that pops nothing and a
+            transition that pops something for any (state, input symbol) pair. For example you
+            cannot have both of (q0, a, A) -> (q1, ε) and (q0, a, ε) -> (q1, ε) in a deterministic
+            PDA. The reason this is nondeterministic is because if you are in q0 and you read an "a"
+            from the input tape, then you can apply either transition if there is an "A" on the top
+            of the stack. This is similar to the previous condition of determinism but applies to
+            the stack rather than to the input symbol.
+        </Label>
+        <Label wrapText="true">For the transition function that allows for popping of strings, the
+            final condition is a little different. This is because it is possible for two different
+            non-empty pop strings to both be applicable. For instance, if the top of the stack
+            contains "ABC", then a transition that pops an "A" from the stack is valid (assuming the
+            state and input symbol also match the transition). However, an identical transition but
+            with a pop string of "AB" instead would also be applicable.
+        </Label>
+        <Label wrapText="true">Whenever the determinism of the constructed PDA changes, the
+            simulator changes the colour and the text of the determinism rectangle automatically.
+            Note that is is possible for a deterministic pushdown automaton to have multiple
+            accepting computations for a single input string. This is when you have epsilon
+            transitions out of an accepting configuration and back into an accepting configuration.
+        </Label>
+        <Separator prefWidth="200.0"/>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Quick run" underline="true">
+            <font>
+                <Font name="System Bold" size="20.0"/>
+            </font>
+        </Text>
+        <Label wrapText="true">The quick run mode allows you to run the PDA on an input word to see
+            if it is accepted or not. If it is accepted, all of the discovered accepting
+            computations are viewable in the dialog that opens with the use of the Previous and Next
+            buttons. It is also possible to watch an animation of the PDA on the currently displayed
+            computation by pressing the Play animation button. By default, the simulator only
+            returns computations which have a length of 50 configurations or less. If the PDA is
+            unable to fully consume the input string within 50 steps, you can run it again with
+            double the number of steps.
+        </Label>
+        <Label wrapText="true">It is possible for PDAs to have computations of infinite length. In
+            such situations, the simulator is not always able to tell that the input word has no
+            accepting computations. Therefore, you may be asked repeatedly if you wish to run the
+            PDA again with double the number of allowed steps. If there exists at least one
+            accepting computation, the simulator will find it provided the step count is high
+            enough.
+        </Label>
+        <Label wrapText="true">Note that in the accepting computations dialog, the stack is shown
+            horizontally in each configuration. The bottom of the stack is on the left-hand side. If
+            you were to push "abc" to an empty stack, the stack would look like: [c, b, a].
+        </Label>
+        <Separator prefWidth="200.0"/>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Step-by-step" underline="true">
+            <font>
+                <Font name="System Bold" size="20.0"/>
+            </font>
+        </Text>
+        <Label wrapText="true">The step-by-step option is useful to see exactly how a PDA works for
+            a given input string. It opens a new window which shows a non-editable PDA diagram,
+            non-editable transition table and an area containing the initial configuration. As with
+            the accepting computations dialog in the quick run mode, the bottom of the stack is on
+            the left-hand side. It works by showing the applicable transition(s) in the current
+            state and then the resulting computation(s) from applying the transition(s). If at any
+            point a computation ends up being rejected (either due to there being no applicable
+            transitions for the current input symbol or because the input has been consumed but an
+            accepting configuration has not been reached), the box will become red.
+        </Label>
+        <Label wrapText="true">In the deterministic case, advancing the computation by clicking the
+            step forwards button will generate a new configuration and place it within the same box.
+            You can use the step backwards button to go back to the previous step at any time until
+            you reach the initial configuration.
+        </Label>
+        <Label wrapText="true">Whenever there is more than one applicable transition
+            (nondeterminism), pressing the step forwards button will generate several new
+            computations, each in their own box. The original computation will no longer allow
+            stepping backwards/forwards but you can use the step backwards buttons in the new
+            computations to see the previous steps. You can click on any computation to select it -
+            this will change the colour of the box to yellow and will highlight the state of the
+            current configuration of the selected computation in the diagram.
+        </Label>
+        <Label wrapText="true">Stepping backwards and then stepping forwards again does not
+            highlight all applicable transitions but just the transition that was previously applied
+            at this stage.
+        </Label>
+        <Separator prefWidth="200.0"/>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Animation" underline="true">
+            <font>
+                <Font name="System Bold" size="20.0"/>
+            </font>
+        </Text>
+        <Label wrapText="true">The final mode for running the pushdown automaton is the animation
+            mode. This mode allows you to watch an animation of the automaton processing an input
+            string. There are two different ways to play an animation. You can either press the Play
+            animation button when viewing an accepting computation in the dialog shown from a quick
+            run or you can press the Animation button next to the Step-by-step button. The Animation
+            button will play a randomly generated computation which may or may not be accepting.
+            This is particularly useful when an input string has no accepting computations. With the
+            randomly generated computations, whenever there is a choice of which transition to
+            apply, the simulator automatically picks a transition at random. It is possible that it
+            picks the same transition at random in consecutive runs. If the automaton is
+            deterministic (or at least is deterministic for the given input string), the same
+            animation will be played each time. Note that if the automaton has any infinite length
+            computations, the animation will only go on for a maximum of 50 steps.
+        </Label>
+        <Label wrapText="true">As with the step-by-step mode, the animation has its own separate
+            window which has a non-editable PDA diagram and a non-editable transition table.
+            Additionally, the window shows the input word in a tape format, with each symbol in a
+            separate tape cell. Below the tape, there is a green triangle which represents the tape
+            head. This just points at the current input symbol. While running the animation, a stack
+            will appear next to the current state. If the stack has 5 elements or less, the full
+            stack is shown. But if the stack contains more than 5 elements, only the top 4 elements
+            will be visible. The fifth cell of the stack will contain an ellipsis to denote that
+            there are multiple symbols below which are not visible.
+        </Label>
+        <Label wrapText="true">As well as the tape and the tape head, there is also a play button
+            and a slider. The slider allows you to change the speed of the animation. Setting the
+            slider all the way to the left-hand side (0) will pause the animation. The play button
+            simply plays the animation for the same computation from the beginning.
+        </Label>
+    </VBox>
+</ScrollPane>

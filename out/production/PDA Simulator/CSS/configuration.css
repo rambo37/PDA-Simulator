@@ -1,0 +1,35 @@
+#pdaConfiguration {
+    -fx-background-color: #93D6EB;
+    -fx-padding: 5;
+    -fx-border-style: solid inside;
+    -fx-border-width: 2;
+    -fx-background-insets: 0, 1;
+}
+
+.consumed .label .text {
+    -fx-strikethrough: true;
+}
+
+#selectedPDAConfiguration {
+    -fx-background-color: #FFD300FF;
+    -fx-padding: 5;
+    -fx-border-style: solid inside;
+    -fx-border-width: 2;
+    -fx-background-insets: 0, 1;
+}
+
+#acceptingPDAConfiguration {
+    -fx-background-color: #05D010FF;
+    -fx-padding: 5;
+    -fx-border-style: solid inside;
+    -fx-border-width: 2;
+    -fx-background-insets: 0, 1;
+}
+
+#nonAcceptingPDAConfiguration {
+    -fx-background-color: #FF4D4DFF;
+    -fx-padding: 5;
+    -fx-border-style: solid inside;
+    -fx-border-width: 2;
+    -fx-background-insets: 0, 1;
+}
