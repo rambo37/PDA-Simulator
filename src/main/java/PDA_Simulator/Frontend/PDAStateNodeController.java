@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -581,5 +582,60 @@ public class PDAStateNodeController {
      */
     public void deleteState(String state) {
         MainController.deleteState(state);
+    }
+
+    /**
+     * Deselects all PDAStateNodes.
+     */
+    public void deselectAllNodes() {
+        for (PDAStateNode node : stateNodes) {
+            node.deselectNode();
+        }
+    }
+
+    /**
+     * Moves all currently selected nodes by the x and y offsets if and only if all nodes can be
+     * moved without leaving the canvas area. Also resizes the canvas pane, if necessary.
+     * @param xOffset The horizontal displacement
+     * @param yOffset The vertical displacement
+     * @param event   The MouseEvent created by dragging a node
+     */
+    public void moveSelectedNodes(double xOffset, double yOffset, MouseEvent event) {
+        // Determine if the drag is valid by seeing if any selected node ends up with a new x or y
+        // coordinate that is less than or equal to 0. This prevents nodes from being dragged out of
+        // the canvas pane to the left or to the top.
+        boolean validDrag = true;
+        for (PDAStateNode node : stateNodes) {
+            if (node.isSelected()) {
+                double newX = node.getLayoutX() + xOffset;
+                double newY = node.getLayoutY() + yOffset;
+
+                if (newY <= 0 || newX <= 0) {
+                    validDrag = false;
+                }
+            }
+        }
+
+        // If none of the nodes would leave the canvas to the top or to the left by performing this
+        // drag, then perform the drag on all selected nodes.
+        if (validDrag) {
+            for (PDAStateNode node : stateNodes) {
+                if (node.isSelected()) {
+                    double newX = node.getLayoutX() + xOffset;
+                    double newY = node.getLayoutY() + yOffset;
+
+                    node.setLayoutX(newX);
+                    node.setLayoutY(newY);
+
+                    // Update the x and y variables of the PDAStateNode to the new coordinates of
+                    // the mouse since the node has been     moved
+                    node.setX(event.getSceneX());
+                    node.setY(event.getSceneY());
+
+                    // Resize the parent Pane if necessary
+                    node.resizeParentPane();
+                }
+            }
+        }
     }
 }

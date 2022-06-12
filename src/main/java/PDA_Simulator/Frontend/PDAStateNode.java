@@ -97,6 +97,8 @@ public class PDAStateNode extends Group {
     private Group newTransitionArrow;
     // A loop transition arrow for this PDAStateNode
     private Group loopTransition;
+    // Whether this PDAStateNode is selected or not
+    private boolean selected = false;
 
     /**
      * Creates a PDAStateNode by creating all the individual components and adding them to the
@@ -180,6 +182,13 @@ public class PDAStateNode extends Group {
                 toFront();
                 // Close the menu in case it was open
                 menu.hide();
+
+                // If this node was not already selected, select this node and also deselect all
+                // other nodes.
+                if (!selected) {
+                    pdaStateNodeController.deselectAllNodes();
+                    selectNode();
+                }
             } else {
                 // The menu will open on the right-hand side but the vertical position depends on
                 // whether the loop transition for this PDAStateNode is present or not. If it is
@@ -196,53 +205,49 @@ public class PDAStateNode extends Group {
 
     /**
      * Adds an EventHandler to the node passed as the argument that allows for dragging of
-     * PDAStateNodes. This method is also able to resize the parent Pane of the PDAStateNodes
-     * vertically, if necessary. See subsection 4.3.1 of the report for further details.
+     * PDAStateNodes.
      *
-     * @param node The Node which we want to be able to drag in order to drag the PDAStateNode.
+     * @param node The Node which can be dragged in order to drag the PDAStateNode.
      */
     private void setOnMouseDraggedEvent(Node node) {
         node.setOnMouseDragged((event) -> {
             // Only allow dragging if the mouse click is a left-click
             if (event.isPrimaryButtonDown()) {
                 // Calculate the offsets based on the initial coordinates the drag started from
-                // (x and y) and the current coordinates of the mouse.
+                // (x and y) and the current coordinates of the mouse. x and y are updated to the
+                // new coordinates of the mouse as the node is dragged.
                 double xOffset = event.getSceneX() - x;
                 double yOffset = event.getSceneY() - y;
 
-                // Calculate the coordinates we are trying to move this PDAStateNode to.
-                double newX = getLayoutX() + xOffset;
-                double newY = getLayoutY() + yOffset;
-
-                // If the node is not dragged outside the parent Pane to the top or the left,
-                // then change the position of this object by setting the layout to its original
-                // value + the respective offset. This is in place to prevent the node being dragged
-                // outside the canvas Pane and thus become inaccessible.
-                if (newY > 0 && newX > 0) {
-                    // Cannot just set the layoutX to event.getSceneX() and the layoutY to
-                    // event.getSceneY() since the container that the PDAStateNodes are in is not
-                    // the root of the scene. Therefore, the event.getSceneY() value does not
-                    // correspond to the same y values of the children of the canvas container.
-                    setLayoutX(newX);
-                    setLayoutY(newY);
-
-                    // Update the x and y coordinates with the new mouse coordinates only if the
-                    // drag actually happens
-                    x = event.getSceneX();
-                    y = event.getSceneY();
-                }
-
-                // Resize the parent Pane if necessary
-                resizeParentPane();
+                // Move all currently selected nodes by the amount this particular node is moved
+                pdaStateNodeController.moveSelectedNodes(xOffset, yOffset, event);
             }
         });
+    }
+
+    /**
+     * Sets the mouse x coordinate.
+     *
+     * @param newX The new x coordinate of the mouse.
+     */
+    public void setX(double newX) {
+        x = newX;
+    }
+
+    /**
+     * Sets the mouse y coordinate.
+     *
+     * @param newY The new y coordinate of the mouse.
+     */
+    public void setY(double newY) {
+        y = newY;
     }
 
     /**
      * Resizes the Pane in which all the PDAStateNodes are contained to the minimum size needed
      * for all PDAStateNodes to be visible.
      */
-    private void resizeParentPane() {
+    public void resizeParentPane() {
         Pane canvas = (Pane) getParent();
 
         ObservableList<Node> children = canvas.getChildren();
@@ -479,7 +484,7 @@ public class PDAStateNode extends Group {
      * @param y the y coordinate
      * @return true if this PDAStateNode contains the coordinate and false otherwise.
      */
-    private boolean containsCoordinates(double x, double y) {
+    public boolean containsCoordinates(double x, double y) {
         double minX = getLayoutX();
         double maxX = minX + 150;
         double minY = getLayoutY();
@@ -1527,8 +1532,7 @@ public class PDAStateNode extends Group {
 
     /**
      * Gets a list of Transitions that highlights a transition arrow. As a transition arrow
-     * consists of multiple parts,
-     * a single transition cannot highlight all the parts in one go.
+     * consists of multiple parts, a single transition cannot highlight all the parts in one go.
      *
      * @param pdaTransition The PDATransition which needs to have its corresponding transition
      *                      arrow highlighted.
@@ -1661,5 +1665,31 @@ public class PDAStateNode extends Group {
      */
     public void hideStack() {
         stackVBox.setVisible(false);
+    }
+
+    /**
+     * Selects this node by giving it a visible border (stroke) and sets the boolean variable
+     * selected to true.
+     */
+    public void selectNode() {
+        outerRectangle.setStroke(Color.BLUE);
+        outerRectangle.setStrokeWidth(2);
+        selected = true;
+    }
+
+    /**
+     * Deselects this node by removing its border and sets the boolean variable selected to false.
+     */
+    public void deselectNode() {
+        outerRectangle.setStroke(null);
+        selected = false;
+    }
+
+    /**
+     * Checks whether this node is currently selected.
+     * @return True if this node is currently selected and false otherwise.
+     */
+    public boolean isSelected() {
+        return selected;
     }
 }

@@ -20,6 +20,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -85,6 +86,14 @@ public class MainController {
     private File file = null;
     // This index stores the current index of the accepting computations dialog
     private int index = 0;
+    // The x coordinate of the mouse.
+    private double x;
+    // The y coordinate of the mouse.
+    private double y;
+    // The selection rectangle used to select multiple nodes.
+    private final Rectangle selection = new Rectangle();
+    // Whether a PDAStateNode is being dragged or not
+    private boolean nodeDrag = false;
     // Below are all the components with fx:ids in main-view.fxml.
     @FXML
     private ToggleGroup acceptanceMenu = new ToggleGroup();
@@ -131,8 +140,7 @@ public class MainController {
 
     /**
      * Initialises the PDA object, the PDAStateNodeController and several JavaFX controls such as
-     * the transition table,
-     * the text fields and the canvas Pane.
+     * the transition table, the text fields and the canvas Pane.
      */
     @FXML
     public void initialize() {
@@ -261,6 +269,95 @@ public class MainController {
         // Set the preferred height of the canvas Pane to a large quantity so that it cannot be
         // reduced in size when the minimum height is lowered.
         canvas.setPrefHeight(5000);
+
+        selection.setStyle("-fx-fill: rgba(0,0,255,0.1);" +
+                "-fx-stroke: blue;" +
+                "-fx-stroke-width: 1;" +
+                "-fx-stroke-dash-array: 2;");
+
+        // Initialise the selection rectangle when the user clicks in the canvas Pane. The rectangle
+        // is positioned at the same position that the mouse click occurs, the size of the rectangle
+        // is set to 0x0, and it is made visible.
+        canvas.setOnMousePressed(event -> {
+            // Store the coordinates of the mouse
+            x = event.getX();
+            y = event.getY();
+            selection.setX(x);
+            selection.setY(y);
+            selection.setWidth(0);
+            selection.setHeight(0);
+            selection.setVisible(true);
+
+            nodeDrag = false;
+
+            // Set nodeDrag to true if the click is within any PDAStateNode since any drag that
+            // occurs after clicking on a PDAStateNode is attempting to drag a node.
+            for (PDAStateNode stateNode : stateNodes) {
+                if (stateNode.containsCoordinates(x, y)) {
+                    nodeDrag = true;
+                }
+            }
+
+            // Deselect all PDAStateNodes once the user clicks on anything other than a node
+            if (!nodeDrag) {
+                for (PDAStateNode stateNode : stateNodes) {
+                    stateNode.deselectNode();
+                }
+            }
+        });
+
+        // When a mouse drag is performed in the canvas, expand the selection rectangle unless the
+        // drag was done on a node. In that case, nothing should happen to the selection rectangle.
+        canvas.setOnMouseDragged(event -> {
+            // Only create a selection rectangle if the drag did not originate from a PDAStateNode
+            if (!nodeDrag) {
+                // Set the coordinates of the rectangle to either the coordinates from which the
+                // drag began from or the current mouse position, based on which is smaller.
+                selection.setX(Math.min(event.getX(), x));
+                selection.setY(Math.min(event.getY(), y));
+
+                // The width and height of the rectangle are set to the absolute difference between
+                // the current mouse coordinates and the initial coordinates the drag began from.
+                selection.setWidth(Math.abs(event.getX() - x));
+                selection.setHeight(Math.abs(event.getY() - y));
+
+                // Select all PDAStateNodes that are within the selection rectangle and deselect
+                // the nodes which are not
+                for (PDAStateNode stateNode : stateNodes) {
+                    if (inSelectionRectangle(stateNode)) {
+                        stateNode.selectNode();
+                    }
+                    else {
+                        stateNode.deselectNode();
+                    }
+                }
+            }
+
+        });
+
+        // Make the selection rectangle disappear once the mouse click is released
+        canvas.setOnMouseReleased(event -> selection.setVisible(false));
+    }
+
+    /**
+     * Checks if the given PDAStateNode is within the selection rectangle.
+     * @param stateNode The PDAStateNode being checked.
+     * @return True if the node is within the rectangle and false otherwise.
+     */
+    private boolean inSelectionRectangle(PDAStateNode stateNode) {
+        double minX = stateNode.getLayoutX();
+        double minY = stateNode.getLayoutY();
+        double maxX = minX + 150;
+        double maxY = minY + 50;
+
+        for (double i = minX; i < maxX; i++) {
+            for (double j = minY; j < maxY; j++) {
+                if (selection.contains(i, j)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -564,6 +661,7 @@ public class MainController {
      */
     private void reset(boolean createInitialState) {
         canvas.getChildren().clear();
+        canvas.getChildren().add(selection);
         stateNodes.clear();
         inputString.clear();
         notes.clear();
@@ -1956,15 +2054,6 @@ public class MainController {
      */
     public static void deleteState(String state) {
         pda.deleteState(state);
-    }
-
-    /**
-     * Gets the initial state of the PDA object.
-     *
-     * @return The initial state of the PDA.
-     */
-    public static String getInitialState() {
-        return pda.getInitialState();
     }
 
     /**
