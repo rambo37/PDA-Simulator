@@ -828,6 +828,20 @@ public class MainController {
             if (event.isControlDown() && event.getCode() == KeyCode.S) {
                 save();
             }
+            // Allow deletion of selected states with the backspace/delete keys.
+            if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
+                ArrayList<PDAStateNode> selectedNodes = new ArrayList<>();
+                for (PDAStateNode stateNode : stateNodes) {
+                    if (stateNode.isSelected()) {
+                        selectedNodes.add(stateNode);
+                    }
+                }
+
+                for (PDAStateNode stateNode : selectedNodes) {
+                    pda.deleteState(stateNode.getStateName());
+                    canvas.getChildren().remove(stateNode);
+                }
+            }
         });
 
         // Prevent the left-hand side of the SplitPane (which has hBox as the root element) from

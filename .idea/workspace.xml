@@ -10,20 +10,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ce2ad145-6331-4c80-8e5d-5a9be7889f30" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/PDA_Simulator.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/main.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/test.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/artifacts/PDA_Simulator_jar.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/artifacts/PDA_Simulator_jar.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/lib.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/MainController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNodeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNodeController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
