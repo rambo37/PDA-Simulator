@@ -842,6 +842,12 @@ public class MainController {
                     canvas.getChildren().remove(stateNode);
                 }
             }
+            // Select all nodes if the user presses ctrl+A
+            if (event.isControlDown() && event.getCode() == KeyCode.A) {
+                for (PDAStateNode stateNode : stateNodes) {
+                    stateNode.selectNode();
+                }
+            }
         });
 
         // Prevent the left-hand side of the SplitPane (which has hBox as the root element) from
