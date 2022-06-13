@@ -50,6 +50,8 @@ public class PDA {
     // A boolean to indicate whether the computation step limit was reached when searching for
     // accepting computations
     private boolean hitMaxSteps = false;
+    // The set of transitions that cause nondeterminism.
+    private final HashSet<PDATransition> nondeterministicTransitions = new HashSet<>();
 
     /**
      * Creates a new PDA and adds a listener to the transitions ObservableList.
@@ -65,9 +67,12 @@ public class PDA {
      * necessary. Nondeterminism can only be possible if there is at least one state with several
      * transitions. Therefore, iterate through all states and obtain all the transitions that
      * belong to that state. If there is more than just one transition, check for nondeterminism.
+     * Also stores any transitions that cause nondeterminism as they are discovered.
      */
     private void checkDeterminism() {
         boolean nonDeterministic = false;
+        // Clear the set of nondeterministic transitions to begin with
+        nondeterministicTransitions.clear();
         ArrayList<PDATransition> stateTransitions = new ArrayList<>();
         // Find all transitions belonging to each state
         for (String state : states) {
@@ -93,6 +98,8 @@ public class PDA {
                                 // symbol and pop string.  For example (q0, a, ε) -> (q1, ε) and
                                 // (q0, a, ε) -> (q2, ε).
                                 nonDeterministic = true;
+                                nondeterministicTransitions.add(stateTransitions.get(i));
+                                nondeterministicTransitions.add(stateTransitions.get(j));
                             }
                         }
                         // Test for condition 2 of nondeterminism (epsilon transitions)
@@ -101,6 +108,8 @@ public class PDA {
                                 // Both an epsilon transition and another transition with the
                                 // same current state and the same pop string.
                                 nonDeterministic = true;
+                                nondeterministicTransitions.add(stateTransitions.get(i));
+                                nondeterministicTransitions.add(stateTransitions.get(j));
                             }
 
                             // If at least one transition reads nothing from the input tape and
@@ -111,6 +120,8 @@ public class PDA {
                             // can apply both transitions.
                             if (popStringI.isEmpty() || popStringJ.isEmpty()) {
                                 nonDeterministic = true;
+                                nondeterministicTransitions.add(stateTransitions.get(i));
+                                nondeterministicTransitions.add(stateTransitions.get(j));
                             }
                         }
                         // Test for the third condition of nondeterminism
@@ -120,6 +131,8 @@ public class PDA {
                                     popStringJ.startsWith(popStringI)) {
                                 nonDeterministic = true;
                             }
+                            nondeterministicTransitions.add(stateTransitions.get(i));
+                            nondeterministicTransitions.add(stateTransitions.get(j));
                             // If we have two transitions with the same current state and input
                             // symbol but at least one of them pops nothing (i.e. it doesn't care
                             // what is on the stack), then we have nondeterminism. For example
@@ -991,5 +1004,13 @@ public class PDA {
      */
     public AcceptanceCriteria getAcceptanceCriteria() {
         return acceptanceCriteria;
+    }
+
+    /**
+     * Gets the transitions that cause nondeterminism.
+     * @return The set of transitions that cause nondeterminism.
+     */
+    public HashSet<PDATransition> getNondeterministicTransitions() {
+        return nondeterministicTransitions;
     }
 }

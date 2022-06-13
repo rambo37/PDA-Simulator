@@ -1,0 +1,5 @@
+.scroll-pane {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}

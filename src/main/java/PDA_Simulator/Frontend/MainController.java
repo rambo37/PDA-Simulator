@@ -32,6 +32,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * This class is the main controller of the application and handles all the MenuBar functionality,
@@ -94,6 +95,8 @@ public class MainController {
     private final Rectangle selection = new Rectangle();
     // Whether a PDAStateNode is being dragged or not
     private boolean nodeDrag = false;
+    // Whether the nondeterministic transitions are currently highlighted or not
+    private boolean nondeterminismHighlighted = false;
     // Below are all the components with fx:ids in main-view.fxml.
     @FXML
     private ToggleGroup acceptanceMenu = new ToggleGroup();
@@ -1483,12 +1486,36 @@ public class MainController {
     }
 
     /**
-     * Create a PDA state in the pda object. The listeners will automatically create a PDAStateNode
+     * Creates a PDA state in the pda object. The listeners will automatically create a PDAStateNode
      * so nothing else needs to be done.
      */
     @FXML
     private void onAddStateButtonClick() {
         pda.addState();
+    }
+
+    /**
+     * Highlights the transitions that cause nondeterminism (if there are any) or unhighlights the
+     * nondeterministic transitions, depending on whether they are currently highlighted or not.
+     */
+    @FXML
+    private void onDeterminismButtonClick() {
+        // Whenever the button is pressed, flip the value of nondeterminismHighlighted
+        nondeterminismHighlighted = !nondeterminismHighlighted;
+
+        // If nondeterminismHighlighted is true, then highlight the nondeterministic transitions
+        // and otherwise unhighlight them.
+        if (nondeterminismHighlighted) {
+            HashSet<PDATransition> transitions = pda.getNondeterministicTransitions();
+            for (PDATransition transition : transitions) {
+                pdaStateNodeController.highlightTransition(transition);
+            }
+        }
+        else {
+            for (PDATransition transition : getTransitions()) {
+                pdaStateNodeController.unhighlightTransition(transition);
+            }
+        }
     }
 
     /**

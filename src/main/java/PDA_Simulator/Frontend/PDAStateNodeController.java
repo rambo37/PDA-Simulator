@@ -125,10 +125,30 @@ public class PDAStateNodeController {
         // Go through the invalid transitions and the PDAStateNodes and if the PDAStateNode
         // contains an invalid transition, then highlight the transition red.
         for (PDATransition transition : invalidTransitions) {
-            for (PDAStateNode node : stateNodes) {
-                if (node.hasTransition(transition)) {
-                    node.highlightTransitionRed(transition);
-                }
+            highlightTransition(transition);
+        }
+    }
+
+    /**
+     * Highlights the given transition in the diagram.
+     * @param transition The transition to be highlighted.
+     */
+    public void highlightTransition(PDATransition transition) {
+        for (PDAStateNode node : stateNodes) {
+            if (node.hasTransition(transition)) {
+                node.highlightTransitionRed(transition);
+            }
+        }
+    }
+
+    /**
+     * Unighlights the given transition in the diagram.
+     * @param transition The transition to be unhighlighted.
+     */
+    public void unhighlightTransition(PDATransition transition) {
+        for (PDAStateNode node : stateNodes) {
+            if (node.hasTransition(transition)) {
+                node.resetTransitionColour(transition);
             }
         }
     }
