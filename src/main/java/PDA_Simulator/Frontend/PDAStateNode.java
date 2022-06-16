@@ -1133,9 +1133,9 @@ public class PDAStateNode extends Group {
             line.endYProperty().bind(other.layoutYProperty().subtract(7));
 
             otherLine.startXProperty().bind(other.layoutXProperty().add(125));
-            otherLine.startYProperty().bind(other.layoutYProperty().add(7));
+            otherLine.startYProperty().bind(other.layoutYProperty());
             otherLine.endXProperty().bind(layoutXProperty().add(125));
-            otherLine.endYProperty().bind(layoutYProperty().add(50));
+            otherLine.endYProperty().bind(layoutYProperty().add(57));
 
         } else if (angle > 225 && angle <= 315) {
             line.startXProperty().bind(layoutXProperty());
