@@ -972,6 +972,11 @@ public class PDAStateNode extends Group {
             // Update the map to include a mapping from this new transition to this same transition
             // group
             transitionsMap.put(transition, existingTransitionGroup);
+            // Change the position of this PDAStateNode to force the adjustMidpoints method to run.
+            // This will ensure that the VBox is correctly positioned in the case that the Line is
+            // a double transition. Change it back afterwards so the user does not see any change.
+            setLayoutY(getLayoutY()+1);
+            setLayoutY(getLayoutY()-1);
             return;
         }
 
@@ -981,6 +986,7 @@ public class PDAStateNode extends Group {
         Line line = new Line();
         line.setStroke(DARK_BLUE);
         line.setStrokeWidth(4);
+        VBox vBox = new VBox();
 
         // A listener that fires whenever either of the PDAStateNodes involved in the transition
         // move
@@ -1049,7 +1055,7 @@ public class PDAStateNode extends Group {
             double y = (line.getEndY() + line.getStartY()) / 2;
 
             // Adjust the midpoint Properties so the Label which uses them is positioned correctly
-            adjustMidpoints(other, x, y, xMidpoint, yMidpoint);
+            adjustMidpoints(other, x, y, xMidpoint, yMidpoint, isDoubleTransition, vBox);
         };
 
         // Calculate the required rotation and midpoint whenever the line changes
@@ -1062,7 +1068,7 @@ public class PDAStateNode extends Group {
         // movement happens
         double x = (line.getEndX() + line.getStartX()) / 2;
         double y = (line.getEndY() + line.getStartY()) / 2;
-        adjustMidpoints(other, x, y, xMidpoint, yMidpoint);
+        adjustMidpoints(other, x, y, xMidpoint, yMidpoint, isDoubleTransition, vBox);
 
 
         Polygon arrowhead = new Polygon();
@@ -1078,7 +1084,6 @@ public class PDAStateNode extends Group {
         arrowhead.setStrokeWidth(0);
         arrowhead.setFill(DARK_BLUE);
 
-        VBox vBox = new VBox();
         vBox.setAlignment(Pos.CENTER);
         vBox.setPrefWidth(60);
         // Bind the x and y layout properties of the VBox to the midpoint of the line
@@ -1231,16 +1236,22 @@ public class PDAStateNode extends Group {
      * Modifies the two DoubleProperty objects that correspond to the midpoint of a Line. This is
      * to ensure that the VBox containing all the transition labels is positioned in a way that
      * prevents the Labels overlapping the transition arrow line. See subsection 4.3.4 of the report
-     * for further details.
+     * for further details. If the Line is a double transition, then the midpoints are positioned in
+     * a different way to ensure the VBox is positioned well for the double transition. This is to
+     * prevent the Labels overlapping with the other transition arrow. The positioning of the y
+     * midpoint in particular for double transitions depends on the number of Labels already in the
+     * VBox.
      *
-     * @param other     The other PDAStateNode the Line connects to
-     * @param x         The x midpoint of the Line
-     * @param y         The y midpoint of the Line
-     * @param xMidpoint The xMidpoint property
-     * @param yMidpoint The yMidpoint property
+     * @param other               The other PDAStateNode the Line connects to
+     * @param x                   The x midpoint of the Line
+     * @param y                   The y midpoint of the Line
+     * @param xMidpoint           The xMidpoint property
+     * @param yMidpoint           The yMidpoint property
+     * @param isDoubleTransition  Whether the midpoints belong to a double transition or not
+     * @param vBox                The VBox that the midpoints are for
      */
     private void adjustMidpoints(PDAStateNode other, Double x, Double y, DoubleProperty xMidpoint,
-                                 DoubleProperty yMidpoint) {
+                                 DoubleProperty yMidpoint, boolean isDoubleTransition, VBox vBox) {
         double angle = angleBetweenPDAStateNodes(other);
 
         xMidpoint.setValue(x);
@@ -1269,6 +1280,70 @@ public class PDAStateNode extends Group {
         }
         if (angle > 290 && angle < 360) {
             xMidpoint.setValue(x - 60);
+        }
+
+        // The midpoints require different adjustments at certain angles if this line is a double
+        // transition.
+        if (isDoubleTransition) {
+            // The amount the yMidpoint needs to be shifted vertically
+            int yDisplacement;
+
+            // The yMidpoint needs to be raised (lower y value) if the line is a double transition
+            // so that the Labels do not overlap with the line. This is only necessary though if
+            // there is more than 1 Label in the VBox and only at specific angles (where the line
+            // is close to horizontal).
+            if (angle > 30 && angle < 135 || angle > 225 && angle < 315) {
+                int numberOfLabels = vBox.getChildren().size();
+                yDisplacement = 17 * numberOfLabels - 17;
+                // Decrease the variable y by the necessary amount before it is used to adjust the
+                // y midpoints based on the angle of the line. If the VBox has no children (as it
+                // has just been created), then yDisplacement would be -17. This would shift the
+                // VBox down which would position the single Label incorrectly. Therefore, y is only
+                // decremented by 0 if yDisplacement is negative.
+                y -= Math.max(yDisplacement, 0);
+            }
+
+            if (angle > 30 && angle < 70) {
+                xMidpoint.setValue(x - 60);
+                yMidpoint.setValue(y - 10);
+            }
+            if (angle >= 70 && angle < 75) {
+                xMidpoint.setValue(x - 60);
+                yMidpoint.setValue(y - 10);
+            }
+            if (angle >= 75 && angle <= 85) {
+                xMidpoint.setValue(x - 40);
+                yMidpoint.setValue(y - 20);
+            }
+            if (angle > 85 && angle < 100) {
+                yMidpoint.setValue(y - 20);
+            }
+            if (angle >= 100 && angle < 135) {
+                yMidpoint.setValue(y - 15);
+                xMidpoint.setValue(x + 2);
+            }
+
+            if (angle > 225 && angle < 240) {
+                xMidpoint.setValue(x - 70);
+            }
+            if (angle >= 240 && angle < 250) {
+                xMidpoint.setValue(x - 60);
+                yMidpoint.setValue(y - 10);
+            }
+            if (angle >= 250 && angle < 266) {
+                xMidpoint.setValue(x - 50);
+                yMidpoint.setValue(y - 20);
+            }
+            if (angle >= 266 && angle < 270) {
+                yMidpoint.setValue(y - 20);
+            }
+            if (angle >= 270 && angle < 280) {
+                yMidpoint.setValue(y - 20);
+            }
+            if (angle >= 280 && angle < 315) {
+                xMidpoint.setValue(x);
+                yMidpoint.setValue(y - 20);
+            }
         }
     }
 
@@ -1357,6 +1432,11 @@ public class PDAStateNode extends Group {
         }
         vBox.getChildren().remove(index);
 
+        // Change the position of this PDAStateNode to force the adjustMidpoints method to run.
+        // Change it back afterwards so the user does not see any change.
+        setLayoutY(getLayoutY()+1);
+        setLayoutY(getLayoutY()-1);
+
         // If after removing the label the size of the VBox's children is 0, the transition arrow
         // needs to be removed
         if (vBox.getChildren().size() == 0) {
@@ -1379,8 +1459,11 @@ public class PDAStateNode extends Group {
                     otherNode = node;
                     for (PDATransition otherNodeTransition : node.transitionsMap.keySet()) {
                         if (otherNodeTransition.getNewState().equals(stateName)) {
-                            Line line =
-                                    (Line) node.transitionsMap.get(otherNodeTransition).getChildren().get(0);
+                            Group otherNodeTransitionGroup = node.transitionsMap.get(otherNodeTransition);
+                            Line line = (Line) otherNodeTransitionGroup.getChildren().get(0);
+                            Polygon arrowhead = (Polygon) otherNodeTransitionGroup.getChildren().get(1);
+                            VBox otherVBox = (VBox) otherNodeTransitionGroup.getChildren().get(2);
+
                             // Manually invoke the adjustLine method once so that the line is
                             // laid out correctly before it is moved
                             node.adjustLine(this, line);
@@ -1396,6 +1479,49 @@ public class PDAStateNode extends Group {
                             layoutYProperty().addListener(PDAStateNodeMoveListener);
                             node.layoutXProperty().addListener(PDAStateNodeMoveListener);
                             node.layoutYProperty().addListener(PDAStateNodeMoveListener);
+
+                            // Also, change the way the midpoints are calculated back to the usual
+                            // way since this is no longer a double transition. This is done by
+                            // passing false as the argument to the adjustMidpoints method call in
+                            // the changeListener.
+
+                            DoubleProperty xMidpoint = new SimpleDoubleProperty((line.getEndX() +
+                                    line.getStartX()) / 2);
+                            DoubleProperty yMidpoint = new SimpleDoubleProperty((line.getEndY() +
+                                    line.getStartY()) / 2);
+
+                            // A listener that fires whenever the line's start or end points change.
+                            ChangeListener<Number> changeListener = (observableValue, oldValue,
+                                                                     newValue) -> {
+
+                                // Update the midpoint of the line
+                                double x = (line.getEndX() + line.getStartX()) / 2;
+                                double y = (line.getEndY() + line.getStartY()) / 2;
+
+                                // Adjust the midpoint Properties so the Label which uses them is
+                                // positioned correctly
+                                node.adjustMidpoints(this, x, y, xMidpoint, yMidpoint, false, otherVBox);
+                            };
+
+                            line.startXProperty().addListener(changeListener);
+                            line.startYProperty().addListener(changeListener);
+                            line.endXProperty().addListener(changeListener);
+                            line.endYProperty().addListener(changeListener);
+
+                            // Bind the layout properties of the VBox of the other transition that
+                            // was involved in the double transition to these midpoint properties.
+                            otherVBox.layoutXProperty().bind(xMidpoint);
+                            otherVBox.layoutYProperty().bind(yMidpoint);
+
+                            // Manually adjust the midpoints once now so that the VBox is positioned
+                            // correctly before the node moves.
+                            double x = (line.getEndX() + line.getStartX()) / 2;
+                            double y = (line.getEndY() + line.getStartY()) / 2;
+                            node.adjustMidpoints(this, x, y, xMidpoint, yMidpoint, false, otherVBox);
+
+                            // No need to do this all again for the other transitions that use this
+                            // same line.
+                            break;
                         }
                     }
                 }
