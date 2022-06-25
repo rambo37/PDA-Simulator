@@ -414,18 +414,13 @@ public class AnimationController {
                 PDAStateNode node = (PDAStateNode) child;
                 for (PDATransition transition : appliedTransition) {
                     if (node.hasTransition(transition)) {
-                        ArrayList<Transition> highlightTransitions;
                         if (highlight) {
-                            highlightTransitions =
-                                    node.getPDATransitionHighlightTransitions(transition,
+                            transitions = node.getPDATransitionHighlightTransitions(transition,
                                             "0x05d010");
                         } else {
-                            highlightTransitions =
-                                    node.getPDATransitionHighlightTransitions(transition,
+                            transitions = node.getPDATransitionHighlightTransitions(transition,
                                             "0x000000");
                         }
-                        transitions.addAll(highlightTransitions);
-
                     }
                 }
             }

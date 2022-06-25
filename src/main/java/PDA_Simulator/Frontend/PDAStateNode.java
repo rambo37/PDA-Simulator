@@ -2,13 +2,9 @@ package PDA_Simulator.Frontend;
 
 import PDA_Simulator.Backend.PDATransition;
 import javafx.animation.FillTransition;
-import javafx.animation.StrokeTransition;
 import javafx.animation.Transition;
 import javafx.application.Platform;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
@@ -50,7 +46,7 @@ public class PDAStateNode extends Group {
     private final PDAStateNodeController pdaStateNodeController;
     // Whether this PDAStateNode is editable or not
     private final boolean editable;
-    // The colour used by transition arrows, thr createTransitionSquare, and the initial state
+    // The colour used by transition arrows, the createTransitionSquare, and the initial state
     // triangle
     private final Color DARK_BLUE = Color.web("0x123edb");
     // The colour used by the outer rectangle of the PDAStateNode and by labels/transitions when
@@ -60,9 +56,7 @@ public class PDAStateNode extends Group {
     // dragged over it
     private final Color GREEN = Color.web("0x1be42f");
     // A mapping of PDATransitions to their respective transition arrow
-    private final HashMap<PDATransition, Group> transitionsMap = new HashMap<>();
-    // A list of all PDAStateNodes that have a transition in each direction with this PDAStateNode
-    private final ArrayList<PDAStateNode> doubleTransitionNodes = new ArrayList<>();
+    private final HashMap<PDATransition, PDATransitionArrow> transitionsMap = new HashMap<>();
     // A visual representation of the stack for use in the animation
     private final VBox stackVBox = new VBox();
     // The rounded light blue rectangle that contains the state name, checkbox and the
@@ -94,9 +88,9 @@ public class PDAStateNode extends Group {
     // A listener for the isInitialState checkbox
     private ChangeListener<Boolean> isInitialStateListener;
     // The arrow that is currently being created when the user drags from the createTransitionSquare
-    private Group newTransitionArrow;
+    private PDATransitionArrow newTransitionArrow;
     // A loop transition arrow for this PDAStateNode
-    private Group loopTransition;
+    private PDATransitionArrow loopTransition;
     // Whether this PDAStateNode is selected or not
     private boolean selected = false;
 
@@ -305,46 +299,15 @@ public class PDAStateNode extends Group {
             x = event.getSceneX();
             y = event.getSceneY();
 
-            // Create a new group for the newTransitionArrow field for this transition being created
-            newTransitionArrow = new Group();
-            Line line = new Line();
-            line.setStroke(DARK_BLUE);
-            line.setStrokeWidth(4);
+            // Create a new PDATransitionArrow for this transition being created.
+            newTransitionArrow = new PDATransitionArrow(this);
+            Line line = newTransitionArrow.getLine();
 
             // Start the line from the center of the square
             line.setStartX(getLayoutX() + 128);
             line.setStartY(getLayoutY() + 24);
             line.setEndX(getLayoutX() + 128);
             line.setEndY(getLayoutY() + 24);
-
-            // Create a property that contains the required rotation for the arrowhead
-            DoubleProperty rotation = new SimpleDoubleProperty();
-            ChangeListener<Number> changeListener = (observableValue, number, t1) -> {
-                // Figure out the required rotation for the arrowhead to point in the correct
-                // direction
-                double requiredRotation = calculateRotation(line.getStartX(), line.getStartY(),
-                        line.getEndX(), line.getEndY());
-                rotation.setValue(requiredRotation);
-            };
-
-            // Calculate the required rotation of the arrowhead whenever the line's endpoint changes
-            line.endXProperty().addListener(changeListener);
-            line.endYProperty().addListener(changeListener);
-
-            // This Polygon is the arrowhead of the transition arrow. It initially points upwards.
-            Polygon arrowhead = new Polygon();
-            arrowhead.getPoints().addAll(-50.0, 40.0, 50.0, 40.0, 0.0, -60.0);
-            // Bind the rotateProperty to the rotation DoubleProperty
-            arrowhead.rotateProperty().bind(rotation);
-            arrowhead.setScaleX(0.15);
-            arrowhead.setScaleY(0.15);
-            arrowhead.layoutXProperty().bind(line.endXProperty());
-            arrowhead.layoutYProperty().bind(line.endYProperty().add(10));
-            arrowhead.setStrokeWidth(0);
-            arrowhead.setFill(DARK_BLUE);
-
-            newTransitionArrow.getChildren().add(line);
-            newTransitionArrow.getChildren().add(arrowhead);
 
             Pane canvas = (Pane) getParent();
             canvas.getChildren().add(newTransitionArrow);
@@ -355,7 +318,7 @@ public class PDAStateNode extends Group {
             double xOffset = event.getSceneX() - x;
             double yOffset = event.getSceneY() - y;
 
-            Line line = (Line) newTransitionArrow.getChildren().get(0);
+            Line line = newTransitionArrow.getLine();
 
             // Set the end coordinates of the line to the amount the mouse has moved. No need to do
             // anything for the arrowhead as that is bound to the end of the line. Also, no need to
@@ -392,7 +355,7 @@ public class PDAStateNode extends Group {
             Pane canvas = (Pane) getParent();
             ObservableList<Node> children = canvas.getChildren();
 
-            Line line = (Line) newTransitionArrow.getChildren().get(0);
+            Line line = newTransitionArrow.getLine();
 
             // The needToRemoveNewTransitionArrow boolean indicates whether this newly created
             // transition arrow should be removed once this event finishes.
@@ -415,12 +378,14 @@ public class PDAStateNode extends Group {
 
                         if (node != this) {
                             PDATransition transition = transitionBetween(node);
-                            // Check if there is already a transition arrow. If not, invoke
-                            // adjustLine so that the transition is laid out in the same way it
-                            // would be if it actually existed.
+                            // Check if there is already a transition arrow. If not, set the start
+                            // and end nodes of the newTransitionArrow so that adjustLine can be
+                            // called. This is to ensure that the transition is laid out in the
+                            // same way it would be if it actually existed.
                             if (transition == null) {
                                 needToRemoveNewTransitionArrow = false;
-                                adjustLine(node, line);
+                                newTransitionArrow.setEndNode(node);
+                                newTransitionArrow.adjustLine();
                             } else {
                                 // As there is already a transition arrow, the new one needs to be
                                 // removed.
@@ -453,26 +418,6 @@ public class PDAStateNode extends Group {
                 canvas.getChildren().remove(newTransitionArrow);
             }
         });
-    }
-
-    /**
-     * Calculates the required rotation for the arrowhead of a transition. Since the arrowhead
-     * points up by default, the returned rotation is the amount of clockwise rotation required from
-     * the vertical.
-     *
-     * @param x1 The x coordinate of the start of the line
-     * @param y1 The y coordinate of the start of the line
-     * @param x2 The x coordinate of the end of the line
-     * @param y2 The y coordinate of the end of the line
-     * @return The required rotation to make the arrowhead point in the correct direction
-     */
-    private double calculateRotation(double x1, double y1, double x2, double y2) {
-        // Multiply dy by -1 since the y-axis is inverted
-        double dy = -(y2 - y1);
-        double dx = x2 - x1;
-
-        // Convert the value returned from Math.atan2 from radians to degrees
-        return 90 - Math.atan2(dy, dx) * 57.2957795;
     }
 
     /**
@@ -513,7 +458,7 @@ public class PDAStateNode extends Group {
     private void onAddTransitionDialogClose() {
         Pane canvas = (Pane) getParent();
         canvas.getChildren().remove(newTransitionArrow);
-        VBox vBox = (VBox) loopTransition.getChildren().get(2);
+        VBox vBox = loopTransition.getVBox();
         if (vBox.getChildren().size() == 0) {
             super.getChildren().remove(loopTransition);
         }
@@ -690,59 +635,11 @@ public class PDAStateNode extends Group {
     }
 
     /**
-     * Creates a Group consisting of a QuadCurve, a Polygon and a VBox to represent a loop arrow in
-     * the PDA.
+     * Creates a PDATransitionArrow consisting of a QuadCurve, a Polygon and a VBox to represent a
+     * loop arrow in the PDA.
      */
     private void createLoopTransition() {
-        loopTransition = new Group();
-        QuadCurve curve = new QuadCurve();
-        curve.setControlX(-22);
-        curve.setControlY(-97);
-        curve.setStartX(-50);
-        curve.setEndX((2));
-        curve.setStartY(0);
-        curve.setEndY(-11);
-        curve.setLayoutX(96);
-        curve.setLayoutY(0);
-        curve.setFill(null);
-        curve.setStroke(DARK_BLUE);
-        curve.setStrokeWidth(4);
-        curve.setStrokeType(StrokeType.INSIDE);
-
-        Polygon arrowhead = new Polygon();
-        arrowhead.getPoints().addAll(-50.0, 40.0, 50.0, 40.0, 0.0, -60.0);
-        arrowhead.setRotate(167);
-        arrowhead.setScaleX(0.15);
-        arrowhead.setScaleY(0.15);
-        arrowhead.setLayoutX(97);
-        arrowhead.setLayoutY(3);
-        arrowhead.setStrokeWidth(0);
-        arrowhead.setFill(DARK_BLUE);
-
-        // VBox to store all the labels
-        VBox vBox = new VBox();
-        vBox.setAlignment(Pos.CENTER);
-        vBox.setPrefWidth(60);
-        vBox.setLayoutX(45);
-        vBox.setLayoutY(-70);
-
-        // Automatically hide/display the loop transition whenever a label is added/removed from the
-        // VBox of the loop transition group.
-        vBox.getChildren().addListener((ListChangeListener<Node>) change -> {
-            while (change.next()) {
-                if (change.wasRemoved()) {
-                    if (vBox.getChildren().isEmpty()) {
-                        super.getChildren().remove(loopTransition);
-                    }
-                } else {
-                    if (!super.getChildren().contains(loopTransition)) {
-                        super.getChildren().add(loopTransition);
-                    }
-                }
-            }
-        });
-
-        loopTransition.getChildren().addAll(curve, arrowhead, vBox);
+        loopTransition = new PDATransitionArrow(this, this, false, true);
     }
 
     /**
@@ -824,13 +721,7 @@ public class PDAStateNode extends Group {
             // If there is already a transition from the other state to this state, do not create
             // a normal transition since it would overlap with the other transition. Instead, create
             // a double transition.
-            if (other.transitionBetween(this) != null) {
-                createTransition(other, transition, true);
-                doubleTransitionNodes.add(other);
-                other.doubleTransitionNodes.add(this);
-            } else {
-                createTransition(other, transition, false);
-            }
+            createTransition(other, transition, other.transitionBetween(this) != null);
         }
     }
 
@@ -859,94 +750,48 @@ public class PDAStateNode extends Group {
      * @param transition The PDATransition that was just added to this state.
      */
     private void addNewLoopTransition(PDATransition transition) {
-        VBox vBox = (VBox) loopTransition.getChildren().get(2);
-        Label newTransition = getTransitionLabel(transition);
-        vBox.getChildren().add(newTransition);
+        VBox vBox = loopTransition.getVBox();
+        loopTransition.addTransition(transition);
         // Shifting the VBox up is only necessary if there is more than one label
         if (vBox.getChildren().size() > 1) {
             vBox.setLayoutY(vBox.getLayoutY() - 17);
         }
 
-        QuadCurve curve = (QuadCurve) loopTransition.getChildren().get(0);
-        Polygon arrowhead = (Polygon) loopTransition.getChildren().get(1);
-        // Add the EventHandlers to the new Label
-        addLabelEventHandlers(newTransition, curve, arrowhead, transition);
         // Add to the map an entry which maps this PDATransition to the loopTransition
         transitionsMap.put(transition, loopTransition);
     }
 
     /**
-     * Returns a Label that describes a transition.
-     *
-     * @param transition The transition which requires a Label.
-     * @return The Label with the correct text to describe the transition.
+     * Returns whether this PDAStateNode is editable.
+     * @return Whether this PDAStateNode is editable or not,
      */
-    private Label getTransitionLabel(PDATransition transition) {
-        String inputSymbol = transition.getInputSymbol();
-        String popString = transition.getPopString();
-        String pushString = transition.getPushString();
-
-        if (inputSymbol.isEmpty()) {
-            inputSymbol = "ε";
-        }
-        if (popString.isEmpty()) {
-            popString = "ε";
-        }
-        if (pushString.isEmpty()) {
-            pushString = "ε";
-        }
-
-        return new Label(inputSymbol + " / " + popString + " / " + pushString);
+    public boolean isNotEditable() {
+        return !editable;
     }
 
     /**
-     * Adds three EventHandlers to a Label so that the colour of the Label text and the transition
-     * arrow changes when the mouse enters/exits the Label and so that clicking the Label opens the
-     * edit transition dialog. See subsection 4.3.5 of the report for further details.
-     *
-     * @param label       The Label which is having the EventHandlers added to it.
-     * @param lineOrCurve The line (or the curve if it is a loopTransition) part of the transition
-     *                    arrow.
-     * @param arrowhead   The arrowhead part of the transition arrow.
-     * @param transition  The PDATransition that the Label is for.
+     * Returns the mapping between PDATransitions and their corresponding PDATransitionArrows.
+     * @return
      */
-    private void addLabelEventHandlers(Label label, Shape lineOrCurve, Polygon arrowhead,
-                                       PDATransition transition) {
-        // Do not add the event handlers to the Label if this PDAStateNode is not editable.
-        if (!editable) {
-            return;
-        }
-
-        // Change the colour of the label and the transition arrow on mouse entry
-        label.setOnMouseEntered(event -> {
-            lineOrCurve.setStroke(LIGHT_BLUE);
-            arrowhead.setFill(LIGHT_BLUE);
-            label.setTextFill(LIGHT_BLUE);
-        });
-
-        // Set the colours back to normal when the mouse exits
-        label.setOnMouseExited(event -> {
-            lineOrCurve.setStroke(DARK_BLUE);
-            arrowhead.setFill(DARK_BLUE);
-            label.setTextFill(Color.BLACK);
-        });
-
-        // Clicking on the label shows the edit transition dialog for the correct PDATransition
-        label.setOnMouseClicked(event -> {
-            Dialog<PDATransition> editTransitionDialog =
-                    pdaStateNodeController.getEditTransitionDialog(transition);
-            editTransitionDialog.show();
-        });
+    public HashMap<PDATransition, PDATransitionArrow> getTransitionsMap() {
+        return transitionsMap;
     }
 
     /**
-     * Handles the creation of non-loop transition arrows in the PDA diagram. Checks if there is
-     * already an existing transition between the two nodes involved in the transition and if there
-     * is one, then it just simply adds a Label to that existing transition group. Otherwise, it
-     * creates a new group. The isDoubleTransition argument indicates whether there is a transition
-     * from one state to another state and vice versa. These require a different layout from
-     * ordinary transitions since they would otherwise overlap. See subsection 4.3.3 of the report
-     * for further details.
+     * Returns the dialog used to edit a particular transition.
+     * @param transition The transition that is to be edited with this dialog.
+     * @return A dialog to edit the given transition.
+     */
+    public Dialog<PDATransition> getEditTransitionDialog(PDATransition transition) {
+        return pdaStateNodeController.getEditTransitionDialog(transition);
+    }
+
+    /**
+     * Handles the creation of non-loop transition arrows in the PDA diagram, creating a new
+     * PDATransitionArrow, if necessary. The isDoubleTransition argument indicates whether there is
+     * a transition from one state to another state and vice versa. These require a different layout
+     * from ordinary transitions since they would otherwise overlap. See subsection 4.3.3 of the
+     * report for further details.
      *
      * @param other              The PDAStateNode that this PDAStateNode has a transition to (and
      *                           vice versa)
@@ -960,391 +805,28 @@ public class PDAStateNode extends Group {
         // add another Label to the VBox for that existing transition arrow rather than creating a
         // new one.
         if (existingTransition != null) {
-            Group existingTransitionGroup = transitionsMap.get(existingTransition);
-            Line line = (Line) existingTransitionGroup.getChildren().get(0);
-            Polygon arrowhead = (Polygon) existingTransitionGroup.getChildren().get(1);
-            VBox vBox = (VBox) existingTransitionGroup.getChildren().get(2);
-            Label newTransition = getTransitionLabel(transition);
-            vBox.getChildren().add(newTransition);
-            // Ensure this label can be used to edit this transition and to change the colour of
-            // the arrow on mouse entry and exit of the label.
-            addLabelEventHandlers(newTransition, line, arrowhead, transition);
+            PDATransitionArrow existingTransitionArrow = transitionsMap.get(existingTransition);
+            existingTransitionArrow.addTransition(transition);
+
             // Update the map to include a mapping from this new transition to this same transition
-            // group
-            transitionsMap.put(transition, existingTransitionGroup);
-            // Change the position of this PDAStateNode to force the adjustMidpoints method to run.
-            // This will ensure that the VBox is correctly positioned in the case that the Line is
-            // a double transition. Change it back afterwards so the user does not see any change.
-            setLayoutY(getLayoutY()+1);
-            setLayoutY(getLayoutY()-1);
+            // arrow
+            transitionsMap.put(transition, existingTransitionArrow);
             return;
         }
 
         // Since there is not already a transition arrow from this node to the other node, create
         // one.
-        Group transitionArrow = new Group();
-        Line line = new Line();
-        line.setStroke(DARK_BLUE);
-        line.setStrokeWidth(4);
-        VBox vBox = new VBox();
+        PDATransitionArrow transitionArrow = new PDATransitionArrow(this, other, isDoubleTransition,
+                false);
 
-        // A listener that fires whenever either of the PDAStateNodes involved in the transition
-        // move
-        ChangeListener<Number> PDAStateNodeMoveListener;
-
-        // If this is a double transition, the listener needs to adjust both transition arrows
-        // rather than just this new one
-        if (isDoubleTransition) {
-            // Find the line that goes from the other PDAStateNode to this PDAStateNode
-            Line otherLine = null;
-            Set<PDATransition> otherNodeTransitions = other.transitionsMap.keySet();
-            for (PDATransition otherNodeTransition : otherNodeTransitions) {
-                if (otherNodeTransition.getNewState().equals(stateName)) {
-                    Group oppositeDirectionArrow = other.transitionsMap.get(otherNodeTransition);
-                    otherLine = (Line) oppositeDirectionArrow.getChildren().get(0);
-                }
-            }
-
-            // Call adjustLines to lay the two lines out nicely initially
-            adjustLines(other, line, otherLine);
-            // A final variable for use in the lambda expression
-            Line finalOtherLine = otherLine;
-            // The change listener needs to adjust both lines in the double transition when
-            // either node is moved
-            PDAStateNodeMoveListener = (observableValue, oldValue, newVal) -> adjustLines(other,
-                    line, finalOtherLine);
-        } else {
-            // Call adjustLine to lay the new line out nicely initially
-            adjustLine(other, line);
-            // The change listener only needs to reposition the newly created line when either
-            // node is moved
-            PDAStateNodeMoveListener = (observableValue, oldValue, newValue) -> adjustLine(other,
-                    line);
-        }
-        // Add the listener to the layoutX and layoutY Properties of both nodes.
-        layoutXProperty().addListener(PDAStateNodeMoveListener);
-        layoutYProperty().addListener(PDAStateNodeMoveListener);
-        other.layoutXProperty().addListener(PDAStateNodeMoveListener);
-        other.layoutYProperty().addListener(PDAStateNodeMoveListener);
-
-        // Calculate how much the arrowhead needs to be rotated based on the angle of the new line.
-        double initialRequiredRotation =
-                calculateRotation(line.getStartX(), line.getStartY(), line.getEndX(),
-                        line.getEndY());
-
-        // Property to store the rotation of the arrowhead, initialised to the initial required
-        // rotation
-        DoubleProperty rotation = new SimpleDoubleProperty(initialRequiredRotation);
-        // Properties to store the coordinates of the midpoint of the newly created line
-        DoubleProperty xMidpoint =
-                new SimpleDoubleProperty((line.getEndX() + line.getStartX()) / 2);
-        DoubleProperty yMidpoint =
-                new SimpleDoubleProperty((line.getEndY() + line.getStartY()) / 2);
-
-        // A listener that fires whenever the line's start or end points change.
-        ChangeListener<Number> changeListener = (observableValue, oldValue, newValue) -> {
-            // Figure out the required rotation for the arrowhead of the line to point in the
-            // correct direction
-            double requiredRotation = calculateRotation(line.getStartX(), line.getStartY(),
-                    line.getEndX(), line.getEndY());
-
-            rotation.setValue(requiredRotation);
-
-            // Update the midpoint of the line
-            double x = (line.getEndX() + line.getStartX()) / 2;
-            double y = (line.getEndY() + line.getStartY()) / 2;
-
-            // Adjust the midpoint Properties so the Label which uses them is positioned correctly
-            adjustMidpoints(other, x, y, xMidpoint, yMidpoint, isDoubleTransition, vBox);
-        };
-
-        // Calculate the required rotation and midpoint whenever the line changes
-        line.startXProperty().addListener(changeListener);
-        line.startYProperty().addListener(changeListener);
-        line.endXProperty().addListener(changeListener);
-        line.endYProperty().addListener(changeListener);
-
-        // Do this once manually so that the midpoints are correctly initialised before any
-        // movement happens
-        double x = (line.getEndX() + line.getStartX()) / 2;
-        double y = (line.getEndY() + line.getStartY()) / 2;
-        adjustMidpoints(other, x, y, xMidpoint, yMidpoint, isDoubleTransition, vBox);
-
-
-        Polygon arrowhead = new Polygon();
-        arrowhead.getPoints().addAll(-50.0, 40.0, 50.0, 40.0, 0.0, -60.0);
-        // Bind the rotateProperty of the arrowhead to the required rotation, so it rotates as the
-        // line rotates
-        arrowhead.rotateProperty().bind(rotation);
-        arrowhead.setScaleX(0.15);
-        arrowhead.setScaleY(0.15);
-        // Bind the arrowhead to the end of the line, so it moves as the line moves
-        arrowhead.layoutXProperty().bind(line.endXProperty());
-        arrowhead.layoutYProperty().bind(line.endYProperty().add(10));
-        arrowhead.setStrokeWidth(0);
-        arrowhead.setFill(DARK_BLUE);
-
-        vBox.setAlignment(Pos.CENTER);
-        vBox.setPrefWidth(60);
-        // Bind the x and y layout properties of the VBox to the midpoint of the line
-        vBox.layoutXProperty().bind(xMidpoint);
-        vBox.layoutYProperty().bind(yMidpoint);
-        // Get a label for this new transition and add it to the VBox
-        Label newTransitionLabel = getTransitionLabel(transition);
-        vBox.getChildren().add(newTransitionLabel);
-
-        // Add the EventHandlers to the Label.
-        addLabelEventHandlers(newTransitionLabel, line, arrowhead, transition);
-        transitionArrow.getChildren().add(line);
-        transitionArrow.getChildren().add(arrowhead);
-        transitionArrow.getChildren().add(vBox);
+        // Invoke the addTransition method to create a Label for this newly added transition arrow
+        transitionArrow.addTransition(transition);
 
         Pane canvas = (Pane) getParent();
         canvas.getChildren().add(transitionArrow);
 
         // Map this new PDATransition to this transition arrow
         transitionsMap.put(transition, transitionArrow);
-    }
-
-    /**
-     * Modifies the end points of both lines based on the angle between the two PDAStateNodes to
-     * ensure they are laid out nicely. See subsection 4.3.4 of the report for further details.
-     *
-     * @param other     The other PDAStateNode that the Line is going to
-     * @param line      The Line from this PDAStateNode to the other PDAStateNode
-     * @param otherLine The Line from the other PDAStateNode to this PDAStateNode
-     */
-    private void adjustLines(PDAStateNode other, Line line, Line otherLine) {
-        // Start by unbinding the endpoints of both lines
-        unbindLineEndPoints(line);
-        unbindLineEndPoints(otherLine);
-
-        double angle = angleBetweenPDAStateNodes(other);
-
-        if (angle >= 45 && angle <= 135) {
-            line.startXProperty().bind(layoutXProperty().add(150));
-            line.startYProperty().bind(layoutYProperty().add(10));
-            line.endXProperty().bind(other.layoutXProperty().subtract(5));
-            line.endYProperty().bind(other.layoutYProperty().add(10));
-
-            otherLine.startXProperty().bind(other.layoutXProperty());
-            otherLine.startYProperty().bind(other.layoutYProperty().add(40));
-            otherLine.endXProperty().bind(layoutXProperty().add(155));
-            otherLine.endYProperty().bind(layoutYProperty().add(40));
-        } else if (angle > 135 && angle <= 225) {
-            line.startXProperty().bind(layoutXProperty().add(25));
-            line.startYProperty().bind(layoutYProperty().add(50));
-            line.endXProperty().bind(other.layoutXProperty().add(25));
-            line.endYProperty().bind(other.layoutYProperty().subtract(7));
-
-            otherLine.startXProperty().bind(other.layoutXProperty().add(125));
-            otherLine.startYProperty().bind(other.layoutYProperty());
-            otherLine.endXProperty().bind(layoutXProperty().add(125));
-            otherLine.endYProperty().bind(layoutYProperty().add(57));
-
-        } else if (angle > 225 && angle <= 315) {
-            line.startXProperty().bind(layoutXProperty());
-            line.startYProperty().bind(layoutYProperty().add(10));
-            line.endXProperty().bind(other.layoutXProperty().add(150).add(5));
-            line.endYProperty().bind(other.layoutYProperty().add(10));
-
-            otherLine.startXProperty().bind(other.layoutXProperty().add(150));
-            otherLine.startYProperty().bind(other.layoutYProperty().add(40));
-            otherLine.endXProperty().bind(layoutXProperty().subtract(5));
-            otherLine.endYProperty().bind(layoutYProperty().add(40));
-        } else {
-            line.startXProperty().bind(layoutXProperty().add(25));
-            line.startYProperty().bind(layoutYProperty());
-            line.endXProperty().bind(other.layoutXProperty().add(25));
-            line.endYProperty().bind(other.layoutYProperty().add(57));
-
-            otherLine.startXProperty().bind(other.layoutXProperty().add(125));
-            otherLine.startYProperty().bind(other.layoutYProperty().add(50));
-            otherLine.endXProperty().bind(layoutXProperty().add(125));
-            otherLine.endYProperty().bind(layoutYProperty().subtract(7));
-        }
-    }
-
-    /**
-     * Modifies the end points of the lines based on the angle between the two PDAStateNodes to
-     * ensure it is laid out nicely. See subsection 4.3.4 of the report for further details.
-     *
-     * @param other The other PDAStateNode that the Line is going to
-     * @param line  The Line between the two nodes.
-     */
-    private void adjustLine(PDAStateNode other, Line line) {
-        unbindLineEndPoints(line);
-
-        double angle = angleBetweenPDAStateNodes(other);
-
-        if (angle >= 45 && angle <= 135) {
-            line.startXProperty().bind(layoutXProperty().add(150));
-            line.startYProperty().bind(layoutYProperty().add(25));
-            line.endXProperty().bind(other.layoutXProperty().subtract(5));
-            line.endYProperty().bind(other.layoutYProperty().add(25));
-        } else if (angle > 135 && angle <= 225) {
-            line.startXProperty().bind(layoutXProperty().add(75));
-            line.startYProperty().bind(layoutYProperty().add(50));
-            line.endXProperty().bind(other.layoutXProperty().add(75));
-            line.endYProperty().bind(other.layoutYProperty().subtract(7));
-        } else if (angle > 225 && angle <= 315) {
-            line.startXProperty().bind(layoutXProperty().subtract(2));
-            line.startYProperty().bind(layoutYProperty().add(25));
-            line.endXProperty().bind(other.layoutXProperty().add(155));
-            line.endYProperty().bind(other.layoutYProperty().add(25));
-        } else {
-            line.startXProperty().bind(layoutXProperty().add(75));
-            line.startYProperty().bind(layoutYProperty());
-            line.endXProperty().bind(other.layoutXProperty().add(75));
-            line.endYProperty().bind(other.layoutYProperty().add(57));
-        }
-    }
-
-    /**
-     * Remove the startX, startY, endX and endY Property bindings of the given Line.
-     *
-     * @param line The Line which needs the bindings removed
-     */
-    private void unbindLineEndPoints(Line line) {
-        line.startXProperty().unbind();
-        line.startYProperty().unbind();
-        line.endXProperty().unbind();
-        line.endYProperty().unbind();
-    }
-
-    /**
-     * Returns the angle between this PDAStateNode and another PDAStateNode using the centres of
-     * each node.
-     *
-     * @param other The other PDAStateNode
-     * @return The angle between this node and the other node
-     */
-    private double angleBetweenPDAStateNodes(PDAStateNode other) {
-        double centerX = this.getLayoutX() + 75;
-        double centerY = this.getLayoutY() + 25;
-        double otherCenterX = other.getLayoutX() + 75;
-        double otherCenterY = other.getLayoutY() + 25;
-
-        double angle = calculateRotation(centerX, centerY, otherCenterX, otherCenterY);
-        if (angle < 0) {
-            angle += 360;
-        }
-        return angle;
-    }
-
-    /**
-     * Modifies the two DoubleProperty objects that correspond to the midpoint of a Line. This is
-     * to ensure that the VBox containing all the transition labels is positioned in a way that
-     * prevents the Labels overlapping the transition arrow line. See subsection 4.3.4 of the report
-     * for further details. If the Line is a double transition, then the midpoints are positioned in
-     * a different way to ensure the VBox is positioned well for the double transition. This is to
-     * prevent the Labels overlapping with the other transition arrow. The positioning of the y
-     * midpoint in particular for double transitions depends on the number of Labels already in the
-     * VBox.
-     *
-     * @param other               The other PDAStateNode the Line connects to
-     * @param x                   The x midpoint of the Line
-     * @param y                   The y midpoint of the Line
-     * @param xMidpoint           The xMidpoint property
-     * @param yMidpoint           The yMidpoint property
-     * @param isDoubleTransition  Whether the midpoints belong to a double transition or not
-     * @param vBox                The VBox that the midpoints are for
-     */
-    private void adjustMidpoints(PDAStateNode other, Double x, Double y, DoubleProperty xMidpoint,
-                                 DoubleProperty yMidpoint, boolean isDoubleTransition, VBox vBox) {
-        double angle = angleBetweenPDAStateNodes(other);
-
-        xMidpoint.setValue(x);
-        yMidpoint.setValue(y);
-
-        if (angle > 80 && angle < 120) {
-            xMidpoint.setValue(x - 30);
-        }
-        if (angle > 100 && angle < 120) {
-            yMidpoint.setValue(y + 10);
-        }
-        if (angle > 110 && angle < 120) {
-            xMidpoint.setValue(x - 35);
-        }
-        if (angle > 120 && angle < 180) {
-            xMidpoint.setValue(x - 60);
-        }
-        if (angle > 170 && angle < 190) {
-            yMidpoint.setValue(y - 10);
-        }
-        if (angle > 265 && angle <= 280) {
-            xMidpoint.setValue(x - 30);
-        }
-        if (angle > 280 && angle < 290) {
-            xMidpoint.setValue(x - 45);
-        }
-        if (angle > 290 && angle < 360) {
-            xMidpoint.setValue(x - 60);
-        }
-
-        // The midpoints require different adjustments at certain angles if this line is a double
-        // transition.
-        if (isDoubleTransition) {
-            // The amount the yMidpoint needs to be shifted vertically
-            int yDisplacement;
-
-            // The yMidpoint needs to be raised (lower y value) if the line is a double transition
-            // so that the Labels do not overlap with the line. This is only necessary though if
-            // there is more than 1 Label in the VBox and only at specific angles (where the line
-            // is close to horizontal).
-            if (angle > 30 && angle < 135 || angle > 225 && angle < 315) {
-                int numberOfLabels = vBox.getChildren().size();
-                yDisplacement = 17 * numberOfLabels - 17;
-                // Decrease the variable y by the necessary amount before it is used to adjust the
-                // y midpoints based on the angle of the line. If the VBox has no children (as it
-                // has just been created), then yDisplacement would be -17. This would shift the
-                // VBox down which would position the single Label incorrectly. Therefore, y is only
-                // decremented by 0 if yDisplacement is negative.
-                y -= Math.max(yDisplacement, 0);
-            }
-
-            if (angle > 30 && angle < 70) {
-                xMidpoint.setValue(x - 60);
-                yMidpoint.setValue(y - 10);
-            }
-            if (angle >= 70 && angle < 75) {
-                xMidpoint.setValue(x - 60);
-                yMidpoint.setValue(y - 10);
-            }
-            if (angle >= 75 && angle <= 85) {
-                xMidpoint.setValue(x - 40);
-                yMidpoint.setValue(y - 20);
-            }
-            if (angle > 85 && angle < 100) {
-                yMidpoint.setValue(y - 20);
-            }
-            if (angle >= 100 && angle < 135) {
-                yMidpoint.setValue(y - 15);
-                xMidpoint.setValue(x + 2);
-            }
-
-            if (angle > 225 && angle < 240) {
-                xMidpoint.setValue(x - 70);
-            }
-            if (angle >= 240 && angle < 250) {
-                xMidpoint.setValue(x - 60);
-                yMidpoint.setValue(y - 10);
-            }
-            if (angle >= 250 && angle < 266) {
-                xMidpoint.setValue(x - 50);
-                yMidpoint.setValue(y - 20);
-            }
-            if (angle >= 266 && angle < 270) {
-                yMidpoint.setValue(y - 20);
-            }
-            if (angle >= 270 && angle < 280) {
-                yMidpoint.setValue(y - 20);
-            }
-            if (angle >= 280 && angle < 315) {
-                xMidpoint.setValue(x);
-                yMidpoint.setValue(y - 20);
-            }
-        }
     }
 
     /**
@@ -1360,181 +842,15 @@ public class PDAStateNode extends Group {
     }
 
     /**
-     * Deletes a PDATransition in the frontend by deleting the Label and the transition arrow, if
-     * necessary. If the PDATransition being deleted is within the map of transitions of this
-     * PDAStateNode, it invokes the appropriate method to handle the removal of the transition in
-     * the frontend. This depends on whether the transition being deleted is a loop transition.
-     * See subsection 4.3.5 of the report for further details.
+     * Deletes a PDATransition in the frontend by invoking the deleteTransition method of the
+     * PDATransitionArrow that corresponds to the given PDATransition object.
      *
      * @param transition The transition that has been deleted
      */
     public void deleteTransition(PDATransition transition) {
-        Group transitionGroup = transitionsMap.get(transition);
-        // If the transition that was deleted is a loopTransition, invoke the
-        // deleteLoopTransition method
-        if (transitionGroup == loopTransition) {
-            deleteLoopTransition(transition);
-        } else {
-            // If the transition that was deleted is a non-loop transition, invoke the
-            // deleteNonLoopTransition method
-            deleteNonLoopTransition(transition);
-        }
+        PDATransitionArrow transitionArrow = transitionsMap.get(transition);
+        transitionArrow.deleteTransition(transition);
         transitionsMap.remove(transition);
-    }
-
-    /**
-     * Handles the deletion of loop transitions (transitions that have the same current state and
-     * next state). It removes the label of the specified transition and adjusts the positioning of
-     * the VBox after the label has been removed, if necessary.
-     *
-     * @param transition The loop transition that has been deleted
-     */
-    private void deleteLoopTransition(PDATransition transition) {
-        VBox vBox = (VBox) loopTransition.getChildren().get(2);
-        int index = 0;
-        for (Node child : vBox.getChildren()) {
-            Label label = (Label) child;
-            String labelText = label.getText();
-            // Find the label for this transition by generating the Label with the correct text
-            // for this transition and comparing the text to the text of each existing Label
-            if (labelText.equals(getTransitionLabel(transition).getText())) {
-                index = vBox.getChildren().indexOf(child);
-            }
-        }
-        // If the VBox has more than 1 Label in it currently, then it has already been translated
-        // vertically. Therefore, translate it by the same amount in the opposite direction since a
-        // Label is being removed.
-        if (vBox.getChildren().size() > 1) {
-            vBox.setLayoutY(vBox.getLayoutY() + 17);
-        }
-        vBox.getChildren().remove(index);
-    }
-
-    /**
-     * Handles the deletion of a non-loop transition (transitions that have different current and
-     * next states). If after deleting this transition there are no more transitions from this
-     * PDAStateNode to the other PDAStateNode in the transition, then the transition arrow is also
-     * removed.
-     *
-     * @param transition The transition that has been deleted
-     */
-    private void deleteNonLoopTransition(PDATransition transition) {
-        Group transitionGroup = transitionsMap.get(transition);
-        // Remove the Label from the VBox
-        VBox vBox = (VBox) transitionGroup.getChildren().get(2);
-        int index = 0;
-        for (Node child : vBox.getChildren()) {
-            Label label = (Label) child;
-            String labelText = label.getText();
-            if (labelText.equals(getTransitionLabel(transition).getText())) {
-                index = vBox.getChildren().indexOf(child);
-            }
-        }
-        vBox.getChildren().remove(index);
-
-        // Change the position of this PDAStateNode to force the adjustMidpoints method to run.
-        // Change it back afterwards so the user does not see any change.
-        setLayoutY(getLayoutY()+1);
-        setLayoutY(getLayoutY()-1);
-
-        // If after removing the label the size of the VBox's children is 0, the transition arrow
-        // needs to be removed
-        if (vBox.getChildren().size() == 0) {
-            Pane canvas = (Pane) getParent();
-            canvas.getChildren().remove(transitionGroup);
-
-            // Since we have just removed a transition, see if we need to convert a double
-            // transition back to a normal transition.
-
-            String newState = transition.getNewState();
-            // The other PDAStateNode involved in the double transition
-            PDAStateNode otherNode = null;
-
-            // Iterate through the list of all PDAStateNodes that have a double transition with
-            // this PDAStateNode
-            for (PDAStateNode node : doubleTransitionNodes) {
-                // If the name of a node matches the name of the newState of this transition,
-                // this node needs to have the double transition converted into a normal transition
-                if (node.stateName.equals(newState)) {
-                    otherNode = node;
-                    for (PDATransition otherNodeTransition : node.transitionsMap.keySet()) {
-                        if (otherNodeTransition.getNewState().equals(stateName)) {
-                            Group otherNodeTransitionGroup = node.transitionsMap.get(otherNodeTransition);
-                            Line line = (Line) otherNodeTransitionGroup.getChildren().get(0);
-                            Polygon arrowhead = (Polygon) otherNodeTransitionGroup.getChildren().get(1);
-                            VBox otherVBox = (VBox) otherNodeTransitionGroup.getChildren().get(2);
-
-                            // Manually invoke the adjustLine method once so that the line is
-                            // laid out correctly before it is moved
-                            node.adjustLine(this, line);
-
-                            // Change the way this line moves back to the normal way by giving it
-                            // the ChangeListener that invokes the adjustLine method rather than the
-                            // adjustLines method.
-                            ChangeListener<Number> PDAStateNodeMoveListener =
-                                    (observableValue, oldValue, newValue) ->
-                                            node.adjustLine(this, line);
-
-                            layoutXProperty().addListener(PDAStateNodeMoveListener);
-                            layoutYProperty().addListener(PDAStateNodeMoveListener);
-                            node.layoutXProperty().addListener(PDAStateNodeMoveListener);
-                            node.layoutYProperty().addListener(PDAStateNodeMoveListener);
-
-                            // Also, change the way the midpoints are calculated back to the usual
-                            // way since this is no longer a double transition. This is done by
-                            // passing false as the argument to the adjustMidpoints method call in
-                            // the changeListener.
-
-                            DoubleProperty xMidpoint = new SimpleDoubleProperty((line.getEndX() +
-                                    line.getStartX()) / 2);
-                            DoubleProperty yMidpoint = new SimpleDoubleProperty((line.getEndY() +
-                                    line.getStartY()) / 2);
-
-                            // A listener that fires whenever the line's start or end points change.
-                            ChangeListener<Number> changeListener = (observableValue, oldValue,
-                                                                     newValue) -> {
-
-                                // Update the midpoint of the line
-                                double x = (line.getEndX() + line.getStartX()) / 2;
-                                double y = (line.getEndY() + line.getStartY()) / 2;
-
-                                // Adjust the midpoint Properties so the Label which uses them is
-                                // positioned correctly
-                                node.adjustMidpoints(this, x, y, xMidpoint, yMidpoint, false, otherVBox);
-                            };
-
-                            line.startXProperty().addListener(changeListener);
-                            line.startYProperty().addListener(changeListener);
-                            line.endXProperty().addListener(changeListener);
-                            line.endYProperty().addListener(changeListener);
-
-                            // Bind the layout properties of the VBox of the other transition that
-                            // was involved in the double transition to these midpoint properties.
-                            otherVBox.layoutXProperty().bind(xMidpoint);
-                            otherVBox.layoutYProperty().bind(yMidpoint);
-
-                            // Manually adjust the midpoints once now so that the VBox is positioned
-                            // correctly before the node moves.
-                            double x = (line.getEndX() + line.getStartX()) / 2;
-                            double y = (line.getEndY() + line.getStartY()) / 2;
-                            node.adjustMidpoints(this, x, y, xMidpoint, yMidpoint, false, otherVBox);
-
-                            // No need to do this all again for the other transitions that use this
-                            // same line.
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // Remove the map entries in each object that indicate there exists a double
-            // transition between the two nodes. Must be done outside the loop to prevent a
-            // ConcurrentModificationException being thrown
-            if (otherNode != null) {
-                otherNode.doubleTransitionNodes.remove(this);
-                doubleTransitionNodes.remove(otherNode);
-            }
-        }
     }
 
     /**
@@ -1570,54 +886,15 @@ public class PDAStateNode extends Group {
     }
 
     /**
-     * Changes the colour of a transition to the specified colour. If this PDAStateNode is not
-     * editable, then the EventHandler for mouse exit is not added. If the newColour is Color.BLACK,
-     * then only the Label is set to the newColour and the transition arrow is set to its original
-     * colour of DARK_BLUE.
+     * Changes the colour of a transition to the specified colour.
      *
-     * @param pdaTransition The PDATransition that needs the corresponding transition arrow's
-     *                      colour changed
-     * @param newColour     The new colour for the transition arrow
+     * @param transition The PDATransition that needs the corresponding transition arrow's colour
+     *                   changed
+     * @param newColour  The new colour for the transition arrow
      */
-    private void changeTransitionColour(PDATransition pdaTransition, Color newColour) {
-        for (PDATransition transition : transitionsMap.keySet()) {
-            if (transition.equals(pdaTransition)) {
-                Group transitionGroup = transitionsMap.get(transition);
-                VBox vBox = (VBox) transitionGroup.getChildren().get(2);
-                for (Node node : vBox.getChildren()) {
-                    Label label = (Label) node;
-                    if (label.getText().equals(getTransitionLabel(transition).getText())) {
-                        Shape lineOrCurve = (Shape) transitionGroup.getChildren().get(0);
-                        Polygon arrowhead = (Polygon) transitionGroup.getChildren().get(1);
-                        // The label needs the colour changed regardless of whether this
-                        // PDAStateNode is editable or not
-                        label.setTextFill(newColour);
-
-                        // If this PDAStateNode is not editable, do not add the EventHandler -
-                        // just change the colour
-                        if (!editable) {
-                            // If the colour we are changing to is black, then we are setting the
-                            // transition back to normal
-                            if (newColour.equals(Color.BLACK)) {
-                                lineOrCurve.setStroke(DARK_BLUE);
-                                arrowhead.setFill(DARK_BLUE);
-                            } else {
-                                lineOrCurve.setStroke(newColour);
-                                arrowhead.setFill(newColour);
-                            }
-                            return;
-                        }
-
-                        label.setOnMouseExited(event -> {
-                            lineOrCurve.setStroke(DARK_BLUE);
-                            arrowhead.setFill(DARK_BLUE);
-                            label.setTextFill(newColour);
-                        });
-
-                    }
-                }
-            }
-        }
+    private void changeTransitionColour(PDATransition transition, Color newColour) {
+        PDATransitionArrow transitionArrow = transitionsMap.get(transition);
+        transitionArrow.changeTransitionColour(transition, newColour);
     }
 
     /**
@@ -1657,67 +934,18 @@ public class PDAStateNode extends Group {
     }
 
     /**
-     * Gets a list of Transitions that highlights a transition arrow. As a transition arrow
-     * consists of multiple parts, a single transition cannot highlight all the parts in one go.
+     * Gets a list of Transitions that highlights a transition arrow.
      *
-     * @param pdaTransition The PDATransition which needs to have its corresponding transition
-     *                      arrow highlighted.
-     * @param newColour     The colour the transition should be highlighted with.
-     * @return An ArrayList of Transitions that highlights the transition arrow instantly
-     * (duration of 0).
+     * @param transition The PDATransition which needs to have its corresponding transition
+     *                   arrow highlighted.
+     * @param newColour  The colour the transition should be highlighted with.
+     * @return An ArrayList of Transitions that highlights the transition arrow.
      */
-    public ArrayList<Transition> getPDATransitionHighlightTransitions(PDATransition pdaTransition
+    public ArrayList<Transition> getPDATransitionHighlightTransitions(PDATransition transition
             , String newColour) {
-        // The list of transitions to be returned
-        ArrayList<Transition> transitions = new ArrayList<>();
-        for (PDATransition transition : transitionsMap.keySet()) {
-            if (transition.equals(pdaTransition)) {
-                // Get the corresponding group for the PDATransition
-                Group transitionGroup = transitionsMap.get(transition);
-                VBox vBox = (VBox) transitionGroup.getChildren().get(2);
-                for (Node node : vBox.getChildren()) {
-                    Label label = (Label) node;
-                    // Find the Label that specifies this pdaTransition
-                    if (label.getText().equals(getTransitionLabel(transition).getText())) {
-                        Shape lineOrCurve = (Shape) transitionGroup.getChildren().get(0);
-                        Polygon arrowhead = (Polygon) transitionGroup.getChildren().get(1);
-
-                        // Custom transition to change the text fill of the Label
-                        Transition labelTransition = new Transition() {
-                            @Override
-                            protected void interpolate(double v) {
-                                label.setTextFill(Color.web(newColour));
-                            }
-                        };
-                        transitions.add(labelTransition);
-
-                        // Transition to change the colour of the Line or QuadCurve of the
-                        // transition arrow
-                        StrokeTransition strokeTransition = new StrokeTransition(Duration.ZERO,
-                                lineOrCurve);
-                        strokeTransition.setCycleCount(1);
-                        transitions.add(strokeTransition);
-
-                        // Transition to change the colour of the arrowhead
-                        FillTransition fillTransition = new FillTransition(Duration.ZERO,
-                                arrowhead);
-                        fillTransition.setCycleCount(1);
-                        transitions.add(fillTransition);
-
-                        // If the colour we are changing to is black, then we are setting the
-                        // transition back to normal
-                        if (newColour.equals("0x000000")) {
-                            strokeTransition.setToValue(DARK_BLUE);
-                            fillTransition.setToValue(DARK_BLUE);
-                        } else {
-                            strokeTransition.setToValue(Color.web(newColour));
-                            fillTransition.setToValue(Color.web(newColour));
-                        }
-                    }
-                }
-            }
-        }
-        return transitions;
+        // Get the corresponding group for the PDATransition
+        PDATransitionArrow transitionArrow = transitionsMap.get(transition);
+        return transitionArrow.getPDATransitionHighlightTransitions(transition, newColour);
     }
 
     /**
