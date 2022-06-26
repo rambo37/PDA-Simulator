@@ -331,10 +331,9 @@ public class PDA {
             ArrayList<PDATransition> invalidTransitions = new ArrayList<>();
 
             for (PDATransition transition : transitions) {
-                if (transition.getCurrentState().equals(state)) {
-                    invalidTransitions.add(transition);
-                }
-                if (transition.getNewState().equals(state)) {
+                String currentState = transition.getCurrentState();
+                String newState = transition.getNewState();
+                if (currentState.equals(state) || newState.equals(state)) {
                     invalidTransitions.add(transition);
                 }
             }
@@ -357,8 +356,8 @@ public class PDA {
                 String popString = transition.getPopString();
                 String pushString = transition.getPushString();
 
-                transitions.add(new PDATransition(currentState, inputSymbol, popString,
-                        pushString, newState));
+                transitions.add(new PDATransition(currentState, inputSymbol, popString, pushString,
+                        newState));
             }
 
             return true;
