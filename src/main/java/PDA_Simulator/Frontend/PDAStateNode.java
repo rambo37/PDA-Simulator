@@ -635,6 +635,13 @@ public class PDAStateNode extends Group {
     }
 
     /**
+     * Shows the initial state triangle for this node by making it visible.
+     */
+    public void showInitialStateTriangle() {
+        initialStateTriangle.setVisible(true);
+    }
+
+    /**
      * Creates a PDATransitionArrow consisting of a QuadCurve, a Polygon and a VBox to represent a
      * loop arrow in the PDA.
      */
@@ -771,7 +778,7 @@ public class PDAStateNode extends Group {
 
     /**
      * Returns the mapping between PDATransitions and their corresponding PDATransitionArrows.
-     * @return
+     * @return Returns the map of PDATransitions to PDATransitionArrows.
      */
     public HashMap<PDATransition, PDATransitionArrow> getTransitionsMap() {
         return transitionsMap;

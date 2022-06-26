@@ -2018,6 +2018,14 @@ public class MainController {
     // Public static methods to allow the other controllers to interact with the PDA object
 
     /**
+     * Gets the initial state of the PDA.
+     * @return The initial state of the PDA.
+     */
+    public static String getInitialState() {
+        return pda.getInitialState();
+    }
+
+    /**
      * Gets the complete list of PDATransitions from the PDA object.
      *
      * @return The PDATransitions.

@@ -538,6 +538,10 @@ public class PDAStateNodeController {
             if (MainController.getAcceptingStates().contains(stateNode.getStateName())) {
                 nonEditableStateNode.makeAcceptingState();
             }
+            // Make this non-editable PDAStateNode show the initial state triangle if necessary
+            if (MainController.getInitialState().equals(stateNode.getStateName())) {
+                nonEditableStateNode.showInitialStateTriangle();
+            }
         }
 
         // Now that the PDAStateNodes have been created and positioned correctly, all that needs
