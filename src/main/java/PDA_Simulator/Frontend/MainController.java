@@ -303,9 +303,7 @@ public class MainController {
 
             // Deselect all PDAStateNodes once the user clicks on anything other than a node
             if (!nodeDrag) {
-                for (PDAStateNode stateNode : stateNodes) {
-                    stateNode.deselectNode();
-                }
+                pdaStateNodeController.deselectAllNodes();
             }
         });
 
@@ -340,6 +338,11 @@ public class MainController {
 
         // Make the selection rectangle disappear once the mouse click is released
         canvas.setOnMouseReleased(event -> selection.setVisible(false));
+
+        // Deselect all nodes when the notes section gains focus. This is to prevent the user from
+        // deleting selected states if they press backspace/delete while trying to edit the text in
+        // the text area.
+        notes.focusedProperty().addListener(observable -> pdaStateNodeController.deselectAllNodes());
     }
 
     /**
@@ -557,6 +560,15 @@ public class MainController {
                 selectNext(transitionTextFields, t);
             }
         }));
+
+        // Deselect all nodes when any of the text fields gain focus. This is to prevent the user
+        // from deleting selected states if they press backspace/delete while trying to edit the
+        // text in the text fields. Do this for the transition ones as well as the input string one.
+        transitionTextFields.forEach(t -> t.focusedProperty().addListener(observable ->
+                pdaStateNodeController.deselectAllNodes()));
+
+        inputString.focusedProperty().addListener(observable ->
+                pdaStateNodeController.deselectAllNodes());
     }
 
     /**
@@ -845,10 +857,12 @@ public class MainController {
                     canvas.getChildren().remove(stateNode);
                 }
             }
-            // Select all nodes if the user presses ctrl+A
+            // Select all nodes if the user presses ctrl+A provided no TextField/TextArea has focus
             if (event.isControlDown() && event.getCode() == KeyCode.A) {
-                for (PDAStateNode stateNode : stateNodes) {
-                    stateNode.selectNode();
+                if (!textFieldFocused()) {
+                    for (PDAStateNode stateNode : stateNodes) {
+                        stateNode.selectNode();
+                    }
                 }
             }
         });
@@ -856,6 +870,16 @@ public class MainController {
         // Prevent the left-hand side of the SplitPane (which has hBox as the root element) from
         // being reduced in size to less than 60% of the stage width.
         hBox.minWidthProperty().bind(stage.widthProperty().multiply(0.6));
+    }
+
+    /**
+     * Checks if any of the TextFields or the notes TextArea currently have focus.
+     * @return True if any of the TextFields or the notes TextArea have focus and false otherwise.
+     */
+    private boolean textFieldFocused() {
+        return currentStateTextField.isFocused() || inputSymbolTextField.isFocused() ||
+                popTextField.isFocused() || pushTextField.isFocused() ||
+                newStateTextField.isFocused() || notes.isFocused() || inputString.isFocused();
     }
 
     /**

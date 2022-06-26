@@ -11,7 +11,7 @@
   <component name="ChangeListManager">
     <list default="true" id="ce2ad145-6331-4c80-8e5d-5a9be7889f30" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Backend/PDA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Backend/PDA.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/MainController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
