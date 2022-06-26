@@ -10,10 +10,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ce2ad145-6331-4c80-8e5d-5a9be7889f30" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/lib.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/PDA_Simulator.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/MainController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNodeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNodeController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/main.iml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/main.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/test.iml" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/test.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,7 +44,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/out/artifacts/PDA_Simulator_jar/PDA-Simulator.jar" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../../Program Files/Java/openjfx-17.0.2_windows-x64_bin-sdk/javafx-sdk-17.0.2/lib" />
     <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -118,8 +119,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Application.PDASimulator" />
-        <item itemvalue="JUnit.PDATransitionTest" />
         <item itemvalue="JUnit.PDATest" />
+        <item itemvalue="JUnit.PDATransitionTest" />
         <item itemvalue="JUnit.PDAConfigurationTest" />
       </list>
     </recent_temporary>

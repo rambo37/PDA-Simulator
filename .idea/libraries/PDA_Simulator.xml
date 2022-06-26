@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="PDA-Simulator">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/out/artifacts/PDA_Simulator_jar/PDA-Simulator.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

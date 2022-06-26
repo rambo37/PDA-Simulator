@@ -305,6 +305,25 @@ class PDATest {
         pda.addTransition(t10);
         // transitions: [{(q0,a,#) -> (A,q1)}, {(q0,a,#A) -> (A,q0)}]
         assertFalse(pda.getDeterministic());
+        pda.deleteTransition(t10);
+        assertTrue(pda.getDeterministic());
+        // ----------------------------------------------------------------------------------------
+        // Same as the previous case but with epsilon as the input symbol for the transition with
+        // the multiple character pop string
+        PDATransition t11 = new PDATransition("q0", "", "#A", "A", "q0");
+        pda.addTransition(t11);
+        // transitions: [{(q0,a,#) -> (A,q1)}, {(q0,,#A) -> (A,q0)}]
+        assertFalse(pda.getDeterministic());
+        pda.getTransitions().clear();
+        // ----------------------------------------------------------------------------------------
+        // Same as the previous case but with epsilon as the input symbol for the transition with
+        // the single character pop string
+        PDATransition t12 = new PDATransition("q0", "", "#", "A", "q1");
+        PDATransition t13 = new PDATransition("q0", "a", "#A", "A", "q0");
+        pda.addTransition(t12);
+        pda.addTransition(t13);
+        // transitions: [{(q0,,#) -> (A,q1)}, {(q0,a,#A) -> (A,q0)}]
+        assertFalse(pda.getDeterministic());
     }
 
     /**
