@@ -151,7 +151,7 @@ public class PDAStateNode extends Group {
             setOnMousePressedEvent(outerRectangle);
             setOnMouseDraggedEvent(outerRectangle);
             // Change the cursor to indicate the node can be dragged
-            outerRectangle.setOnMouseEntered(event -> getScene().setCursor(Cursor.HAND));
+            outerRectangle.setOnMouseEntered(event -> getScene().setCursor(Cursor.MOVE));
             outerRectangle.setOnMouseExited(event -> getScene().setCursor(Cursor.DEFAULT));
         }
     }
@@ -290,7 +290,8 @@ public class PDAStateNode extends Group {
             return;
         }
 
-        createTransitionSquare.setOnMouseEntered(event -> getScene().setCursor(Cursor.HAND));
+        createTransitionSquare.setOnMouseEntered(event -> getScene().setCursor(Cursor.CROSSHAIR));
+        createTransitionSquare.setOnMouseExited(event -> getScene().setCursor(Cursor.DEFAULT));
 
         // When the square is clicked on, set everything up for dragging to occur. This involves
         // creating a new transition arrow which starts from the centre of the square.
@@ -314,7 +315,7 @@ public class PDAStateNode extends Group {
         });
 
         createTransitionSquare.setOnMouseDragged((event) -> {
-            getScene().setCursor(Cursor.HAND);
+            getScene().setCursor(Cursor.CROSSHAIR);
             double xOffset = event.getSceneX() - x;
             double yOffset = event.getSceneY() - y;
 
@@ -352,6 +353,7 @@ public class PDAStateNode extends Group {
         // Upon mouse release, check if the newTransitionArrow was released inside a PDAStateNode
         // and if so, get and show the create transition dialog.
         createTransitionSquare.setOnMouseReleased(mouseEvent -> {
+            getScene().setCursor(Cursor.DEFAULT);
             Pane canvas = (Pane) getParent();
             ObservableList<Node> children = canvas.getChildren();
 
@@ -503,7 +505,7 @@ public class PDAStateNode extends Group {
         // the menu to open by right-clicking on the label.
         setOnMousePressedEvent(stateNameLabel);
         setOnMouseDraggedEvent(stateNameLabel);
-        stateNameLabel.setOnMouseEntered(event -> getScene().setCursor(Cursor.HAND));
+        stateNameLabel.setOnMouseEntered(event -> getScene().setCursor(Cursor.MOVE));
         stateNameLabel.setOnMouseExited(event -> getScene().setCursor(Cursor.DEFAULT));
     }
 
