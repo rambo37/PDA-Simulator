@@ -1169,13 +1169,13 @@ class PDATest {
         pda2.changeAcceptingState("q0");
         pda2.addTransition(new PDATransition("q0", "a", "", "", "q0"));
         // Input string "a" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("a", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("a", 50, 5000).getKey().size(), 1);
         // Input string "aaaaa" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("aaaaa", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("aaaaa", 50, 5000).getKey().size(), 1);
         // Empty string has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("", 50, 5000).getKey().size(), 1);
         // Input string "b" has no solutions
-        assertNull(pda2.getAcceptingComputations("b", 50));
+        assertNull(pda2.getAcceptingComputations("b", 50, 5000));
 
         pda2 = new PDA();
         pda2.addState();
@@ -1183,15 +1183,15 @@ class PDATest {
         pda2.addTransition(new PDATransition("q1", "b", "", "", "q1"));
         pda2.changeAcceptingState("q1");
         // Input string "a" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("a", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("a", 50, 5000).getKey().size(), 1);
         // Input string "abbb" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("abbb", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("abbb", 50, 5000).getKey().size(), 1);
         // Input string "b" has no solutions
-        assertNull(pda2.getAcceptingComputations("b", 50));
+        assertNull(pda2.getAcceptingComputations("b", 50, 5000));
         // Input string "ba" has no solutions
-        assertNull(pda2.getAcceptingComputations("ba", 50));
+        assertNull(pda2.getAcceptingComputations("ba", 50, 5000));
         // Empty string has no solutions
-        assertNull(pda2.getAcceptingComputations("b", 50));
+        assertNull(pda2.getAcceptingComputations("b", 50, 5000));
 
         // Tests for PDA with infinite length computations
         pda2 = new PDA();
@@ -1199,18 +1199,18 @@ class PDATest {
         pda2.changeAcceptingState("q0");
         pda2.addTransition(new PDATransition("q0", "", "", "", "q0"));
         // 50 accepting computations for the empty string and a step limit of 50
-        assertEquals(pda2.getAcceptingComputations("", 50).size(), 50);
+        assertEquals(pda2.getAcceptingComputations("", 50, 5000).getKey().size(), 50);
         // 100 accepting computations for the empty string and a step limit of 100
-        assertEquals(pda2.getAcceptingComputations("", 100).size(), 100);
+        assertEquals(pda2.getAcceptingComputations("", 100, 5000).getKey().size(), 100);
         // No accepting computations found for the input string "a"
-        assertEquals(pda2.getAcceptingComputations("a", 50).size(), 0);
+        assertEquals(pda2.getAcceptingComputations("a", 50, 5000).getKey().size(), 0);
 
         pda2.addTransition(new PDATransition("q0", "", "", "", "q1"));
         pda2.changeAcceptingState("q1");
         // 99 accepting computations for the empty string and a step limit of 50
-        assertEquals(pda2.getAcceptingComputations("", 50).size(), 99);
+        assertEquals(pda2.getAcceptingComputations("", 50, 5000).getKey().size(), 99);
         // No accepting computations found for the input string "a"
-        assertEquals(pda2.getAcceptingComputations("a", 50).size(), 0);
+        assertEquals(pda2.getAcceptingComputations("a", 50, 5000).getKey().size(), 0);
     }
 
     /**
@@ -1223,13 +1223,13 @@ class PDATest {
         pda2.changeAcceptanceCriteria(AcceptanceCriteria.EMPTY_STACK);
         pda2.addTransition(new PDATransition("q0", "a", "", "", "q0"));
         // Input string "a" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("a", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("a", 50, 5000).getKey().size(), 1);
         // Input string "aaaaa" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("aaaaa", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("aaaaa", 50, 5000).getKey().size(), 1);
         // Empty string has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("", 50, 5000).getKey().size(), 1);
         // Input string "b" has no solutions
-        assertNull(pda2.getAcceptingComputations("b", 50));
+        assertNull(pda2.getAcceptingComputations("b", 50, 5000));
 
         pda2 = new PDA();
         pda2.addState();
@@ -1240,11 +1240,11 @@ class PDATest {
         pda2.addTransition(new PDATransition("q1", "b", "#", "", "q1"));
         pda2.addTransition(new PDATransition("q1", "b", "", "", "q1"));
         // Input string "a" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("a", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("a", 50, 5000).getKey().size(), 1);
         // Input string "b" has no solutions
-        assertNull(pda2.getAcceptingComputations("b", 50));
+        assertNull(pda2.getAcceptingComputations("b", 50, 5000));
         // Input string "bbb" has 2 accepting computations
-        assertEquals(pda2.getAcceptingComputations("bbb", 50).size(), 2);
+        assertEquals(pda2.getAcceptingComputations("bbb", 50, 5000).getKey().size(), 2);
 
 
         pda2 = new PDA();
@@ -1255,13 +1255,30 @@ class PDATest {
         pda2.addTransition(new PDATransition("q1", "a", "A", "", "q1"));
         pda2.addTransition(new PDATransition("q1", "b", "", "", "q1"));
         // Input string "a" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("a", 50));
+        assertNull(pda2.getAcceptingComputations("a", 50, 5000));
         // Input string "b" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("b", 50));
+        assertNull(pda2.getAcceptingComputations("b", 50, 5000));
         // Input string "aa" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("aa", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("aa", 50, 5000).getKey().size(), 1);
         // Input string "bb" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("bb", 50));
+        assertNull(pda2.getAcceptingComputations("bb", 50, 5000));
+    }
+
+    /**
+     * This PDA has no accepting computations and also has an epsilon transition cycle. However, the
+     * getAcceptingComputations method should still terminate and produce false as the value of the
+     * Pair object since the total step limit is reached.
+     */
+    @Test
+    void getAcceptingComputations3() {
+        PDA pda2 = new PDA();
+        pda2.addState();
+        pda2.setInitialStackSymbol("#");
+        pda2.changeAcceptanceCriteria(AcceptanceCriteria.EMPTY_STACK);
+        pda2.addTransition(new PDATransition("q0", "", "", "", "q0"));
+        pda2.addTransition(new PDATransition("q0", "", "", "", "q1"));
+        pda2.addTransition(new PDATransition("q1", "", "", "", "q0"));
+        assertFalse(pda2.getAcceptingComputations("", 50, 5000).getValue());
     }
 
     /**
@@ -1275,34 +1292,39 @@ class PDATest {
                 " acceptingStates=[], initialStackSymbol=#, acceptanceCriteria=EMPTY_STACK}");
 
         // Input string "a" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("a", 50));
+        assertNull(pda2.getAcceptingComputations("a", 50, 5000));
         // Input string "b" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("b", 50));
+        assertNull(pda2.getAcceptingComputations("b", 50, 5000));
         // Input string "ba" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("ba", 50));
+        assertNull(pda2.getAcceptingComputations("ba", 50, 5000));
         // Input string "aba" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("aba", 50));
+        assertNull(pda2.getAcceptingComputations("aba", 50, 5000));
         // Input string "abab" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("abab", 50));
+        assertNull(pda2.getAcceptingComputations("abab", 50, 5000));
         // Input string consisting of 25 as followed by 25bs  has no accepting computations of
         // length 50 or less
         assertEquals(pda2.getAcceptingComputations(
                 "aaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbb",
-                50).size(), 0);
+                50, 5000).getKey().size(), 0);
+        // The second element of the pair should be true since the step limit was reached
+        assertTrue(pda2.getAcceptingComputations(
+                "aaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbb",
+                50, 5000).getValue());
 
         // Input string "ab" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("ab", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("ab", 50, 5000).getKey().size(), 1);
         // Input string "aaaaaaaaaabbbbbbbbbb" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("aaaaaaaaaabbbbbbbbbb", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations(
+                "aaaaaaaaaabbbbbbbbbb", 50, 5000).getKey().size(), 1);
         // Input string consisting of 24 as followed by 24bs has 1 accepting computation
         assertEquals(pda2.getAcceptingComputations(
                 "aaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbb",
-                50).size(), 1);
+                50, 5000).getKey().size(), 1);
         // Input string consisting of 25 as followed by 25bs  has 1 accepting computations when
         // maxSteps is 100
         assertEquals(pda2.getAcceptingComputations(
                 "aaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbb",
-                100).size(), 1);
+                100, 5000).getKey().size(), 1);
     }
 
     /**
@@ -1318,34 +1340,35 @@ class PDATest {
                 "initialStackSymbol=null, acceptanceCriteria=BOTH}");
 
         // Input string "a" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("a", 50));
+        assertNull(pda2.getAcceptingComputations("a", 50, 5000));
         // Input string "b" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("b", 50));
+        assertNull(pda2.getAcceptingComputations("b", 50, 5000));
         // Input string "ba" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("ba", 50));
+        assertNull(pda2.getAcceptingComputations("ba", 50, 5000));
         // Input string "aba" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("aba", 50));
+        assertNull(pda2.getAcceptingComputations("aba", 50, 5000));
         // Input string "abab" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("abab", 50));
+        assertNull(pda2.getAcceptingComputations("abab", 50, 5000));
         // Input string consisting of 25 as followed by 25bs  has no accepting computations of
         // length 50 or less
         assertEquals(pda2.getAcceptingComputations(
                 "aaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbb",
-                50).size(), 0);
+                50, 5000).getKey().size(), 0);
 
         // Input string "ab" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("ab", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("ab", 50, 5000).getKey().size(), 1);
         // Input string "aaaaaaaaaabbbbbbbbbb" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("aaaaaaaaaabbbbbbbbbb", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations(
+                "aaaaaaaaaabbbbbbbbbb", 50, 5000).getKey().size(), 1);
         // Input string consisting of 24 as followed by 24bs has 1 accepting computation
         assertEquals(pda2.getAcceptingComputations(
                 "aaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbb",
-                50).size(), 1);
+                50, 5000).getKey().size(), 1);
         // Input string consisting of 25 as followed by 25bs  has 1 accepting computations when
         // maxSteps is 100
         assertEquals(pda2.getAcceptingComputations(
                 "aaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbb",
-                100).size(), 1);
+                100, 5000).getKey().size(), 1);
     }
 
     /**
@@ -1361,28 +1384,28 @@ class PDATest {
                 " acceptanceCriteria=BOTH}");
 
         // Input string "a" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("a", 50));
+        assertNull(pda2.getAcceptingComputations("a", 50, 5000));
         // Input string "b" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("b", 50));
+        assertNull(pda2.getAcceptingComputations("b", 50, 5000));
         // Input string "ab" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("ab", 50));
+        assertNull(pda2.getAcceptingComputations("ab", 50, 5000));
         // Input string "ba" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("ba", 50));
+        assertNull(pda2.getAcceptingComputations("ba", 50, 5000));
         // Input string "aba" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("aba", 50));
+        assertNull(pda2.getAcceptingComputations("aba", 50, 5000));
         // Input string "abab" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("abab", 50));
+        assertNull(pda2.getAcceptingComputations("abab", 50, 5000));
 
         // Input string "aa" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("aa", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("aa", 50, 5000).getKey().size(), 1);
         // Input string "bb" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("bb", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("bb", 50, 5000).getKey().size(), 1);
         // Input string "aabbaa" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("aabbaa", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("aabbaa", 50, 5000).getKey().size(), 1);
         // Input string "aaaaaa" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("aaaaaa", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("aaaaaa", 50, 5000).getKey().size(), 1);
         // Input string "aabbaaaabbaa" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("aabbaaaabbaa", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("aabbaaaabbaa", 50, 5000).getKey().size(), 1);
     }
 
     /**
@@ -1400,34 +1423,34 @@ class PDATest {
                 " initialStackSymbol=null, acceptanceCriteria=ACCEPTING_STATE}");
 
         // Input string "A" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("A", 50));
+        assertNull(pda2.getAcceptingComputations("A", 50, 5000));
         // Input string "B" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("B", 50));
+        assertNull(pda2.getAcceptingComputations("B", 50, 5000));
         // Input string "AAB" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("AAB", 50));
+        assertNull(pda2.getAcceptingComputations("AAB", 50, 5000));
         // Input string "AABABBA" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("AABABBA", 50));
+        assertNull(pda2.getAcceptingComputations("AABABBA", 50, 5000));
 
         // Empty string has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("", 50, 5000).getKey().size(), 1);
         // Input string "AB" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("AB", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("AB", 50, 5000).getKey().size(), 1);
         // Input string "BA" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("BA", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("BA", 50, 5000).getKey().size(), 1);
         // Input string "ABAB" has 2 accepting computations
-        assertEquals(pda2.getAcceptingComputations("ABAB", 50).size(), 2);
+        assertEquals(pda2.getAcceptingComputations("ABAB", 50, 5000).getKey().size(), 2);
         // Input string "BABA" has 2 accepting computations
-        assertEquals(pda2.getAcceptingComputations("BABA", 50).size(), 2);
+        assertEquals(pda2.getAcceptingComputations("BABA", 50, 5000).getKey().size(), 2);
         // Input string "ABABAB" has 4 accepting computations
-        assertEquals(pda2.getAcceptingComputations("ABABAB", 50).size(), 4);
+        assertEquals(pda2.getAcceptingComputations("ABABAB", 50, 5000).getKey().size(), 4);
         // Input string "ABABABAB" has 8 accepting computations
-        assertEquals(pda2.getAcceptingComputations("ABABABAB", 50).size(), 8);
+        assertEquals(pda2.getAcceptingComputations("ABABABAB", 50, 5000).getKey().size(), 8);
         // Input string "AAAABBBB" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("AAAABBBB", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("AAAABBBB", 50, 5000).getKey().size(), 1);
         // Input string "BBBBAAAA" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("BBBBAAAA", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("BBBBAAAA", 50, 5000).getKey().size(), 1);
         // Input string "AABAABBB" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("AABAABBB", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("AABAABBB", 50, 5000).getKey().size(), 1);
     }
 
     /**
@@ -1442,26 +1465,26 @@ class PDATest {
                 " acceptingStates=[q1], initialStackSymbol=null, acceptanceCriteria=BOTH}");
 
         // Input string "a" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("a", 50));
+        assertNull(pda2.getAcceptingComputations("a", 50, 5000));
         // Input string "b" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("b", 50));
+        assertNull(pda2.getAcceptingComputations("b", 50, 5000));
         // Input string "ba" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("ba", 50));
+        assertNull(pda2.getAcceptingComputations("ba", 50, 5000));
         // Input string "abbb" has no accepting computations
-        assertNull(pda2.getAcceptingComputations("abbb", 50));
+        assertNull(pda2.getAcceptingComputations("abbb", 50, 5000));
 
         // Input string "ab" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("ab", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("ab", 50, 5000).getKey().size(), 1);
         // Input string "abb" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("abb", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("abb", 50, 5000).getKey().size(), 1);
         // Input string "aabb" has 1 accepting computation
-        assertEquals(pda2.getAcceptingComputations("aabb", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("aabb", 50, 5000).getKey().size(), 1);
         // Input string "aabbb" has 2 accepting computations
-        assertEquals(pda2.getAcceptingComputations("aabbb", 50).size(), 2);
+        assertEquals(pda2.getAcceptingComputations("aabbb", 50, 5000).getKey().size(), 2);
         // Input string "aabbbb" has 2 accepting computations
-        assertEquals(pda2.getAcceptingComputations("aabbbb", 50).size(), 1);
+        assertEquals(pda2.getAcceptingComputations("aabbbb", 50, 5000).getKey().size(), 1);
         // Input string "aaabbbb" has 3 accepting computations
-        assertEquals(pda2.getAcceptingComputations("aaabbbb", 50).size(), 3);
+        assertEquals(pda2.getAcceptingComputations("aaabbbb", 50, 5000).getKey().size(), 3);
     }
 
     /**
@@ -1478,8 +1501,8 @@ class PDATest {
         // The random computation returns the same computation as the computation returned by
         // getAcceptingComputations
         // when the PDA has only one accepting computation
-        assertEquals(pda2.getAcceptingComputations("ab", 50).get(0), pda2.getRandomComputation(
-                "ab"));
+        assertEquals(pda2.getAcceptingComputations("ab", 50, 5000).getKey().get(0),
+                pda2.getRandomComputation("ab"));
 
         pda2 = new PDA();
         pda2.addState();
@@ -1487,11 +1510,12 @@ class PDATest {
         pda2.addTransition(new PDATransition("q0", "", "", "", "q0"));
 
         // 50 accepting computations are generated for this PDA with an epsilon transition cycle.
-        assertEquals(pda2.getAcceptingComputations("", 50).size(), 50);
+        assertEquals(pda2.getAcceptingComputations("", 50, 5000).getKey().size(), 50);
 
         // The longest accepting computation (the last one) is the same as the randomly generated
         // computation
-        assertEquals(pda2.getAcceptingComputations("", 50).get(49), pda2.getRandomComputation(""));
+        assertEquals(pda2.getAcceptingComputations("", 50, 5000).getKey().get(49),
+                pda2.getRandomComputation(""));
 
         // PDA with an epsilon cycle returns a random computation that does not exceed length 50
         pda2 = new PDA();

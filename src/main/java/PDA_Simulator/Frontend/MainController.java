@@ -25,6 +25,7 @@ import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,10 +55,14 @@ public class MainController {
     private static final Image APPLICATION_ICON = new Image("Images/icon.png");
     // The maximum number of steps a computation can run for by default
     private static final int DEFAULT_MAX_STEPS = 50;
+    // The maximum number of total steps that the PDA can run for by default
+    private static final int DEFAULT_MAX_TOTAL_STEPS = 5000;
     // The underlying PDA object
     private static PDA pda;
     // The current maximum number of steps a computation can run for
-    private static int currentMaxSteps = 50;
+    private static int currentMaxSteps = DEFAULT_MAX_STEPS;
+    // The current maximum number of steps the PDA can run for
+    private static int currentMaxTotalSteps = DEFAULT_MAX_TOTAL_STEPS;
     // An ArrayList to store all accepting computations that were found
     private static ArrayList<ArrayList<PDAConfiguration>> acceptingComputations = new ArrayList<>();
     // The dialog to specify the initial stack symbol
@@ -1715,12 +1720,13 @@ public class MainController {
      * is able to run and if so, it attempts to find the accepting computations for the provided
      * input string. If getAcceptingComputations in the PDA class returns null, then there are no
      * accepting computations for the input string of any length, so inform the user with an Alert.
-     * If the return value is instead not null but empty, then that means no accepting computations
-     * were found in the length limit. In this case, the user is asked if they want to try again
-     * with double the number of allowed steps. This process can happen repeatedly. If the
-     * acceptingComputations field is non-empty, a dialog is shown to the user with all discovered
-     * accepting computations within the length limit. See section 4.10 of the report for further
-     * details.
+     * If the return value is not null, then the first element of the Pair is the ArrayList of
+     * discovered accepting computations. If this is empty, then that means either the length limit
+     * was reached by at least one computation or the overall step limit was reached. In either
+     * case, the user is asked if they want to try again with double the limit. This process can
+     * happen repeatedly. If the acceptingComputations field is non-empty, a dialog is shown to the
+     * user with all discovered accepting computations within the length limit. See section 4.10 of
+     * the report for further details.
      */
     @FXML
     private void onQuickRunButtonClicked() {
@@ -1729,12 +1735,15 @@ public class MainController {
         }
 
         // Since the PDA can run, attempt to find the accepting computations for the input string.
-        acceptingComputations = pda.getAcceptingComputations(inputString.getText(),
-                currentMaxSteps);
+        Pair<ArrayList<ArrayList<PDAConfiguration>>, Boolean> pair;
+        pair = pda.getAcceptingComputations(inputString.getText(), currentMaxSteps,
+                currentMaxTotalSteps);
 
-        // If acceptingComputations is null, then there are no accepting computations irrespective
-        // of the length limit
-        if (acceptingComputations == null) {
+        if (pair != null) {
+            acceptingComputations = pair.getKey();
+        }
+        // If pair is null, then there are no accepting computations irrespective of the two limits
+        else {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Input string rejected");
             alert.setHeaderText(null);
@@ -1748,37 +1757,63 @@ public class MainController {
             return;
         }
 
-        // If acceptingComputations is empty, the PDA could not find an accepting computation
-        // within the length limit
+        // If acceptingComputations is empty, then one of the two limits was reached. This may be
+        // the reason why no accepting computations were discovered so ask the user if they want to
+        // try again with a larger limit.
         if (acceptingComputations.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("No accepting computations found");
             alert.setHeaderText(null);
-            // Ask the user if they want to run for double the number of steps.
-            Label label = new Label("There are no accepting computations for the input " +
-                    "string of length " +
-                    currentMaxSteps + " or less.\nWould you like to try again with a computation " +
-                    "length limit of " + (2 * currentMaxSteps) + "?");
-
             DialogPane dialogPane = alert.getDialogPane();
+            Label label = new Label();
             dialogPane.setContent(label);
+            // Remove the automatically generated ButtonType.OK
+            dialogPane.getButtonTypes().remove(ButtonType.OK);
+
             Stage stage = (Stage) dialogPane.getScene().getWindow();
             stage.getIcons().add(APPLICATION_ICON);
 
             dialogPane.getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
-            // Double the maximum number of steps and run the PDA again using this method so the
-            // process can repeat
-            dialogPane.lookupButton(ButtonType.YES).addEventFilter(ActionEvent.ACTION, event -> {
-                currentMaxSteps *= 2;
-                alert.close();
-                onQuickRunButtonClicked();
-            });
-            // Reset the currentMaxSteps if the user selects the No button
-            dialogPane.lookupButton(ButtonType.NO).addEventFilter(ActionEvent.ACTION, event ->
-                    currentMaxSteps = DEFAULT_MAX_STEPS);
+            // If the second element of the pair is true, then the length limit for an individual
+            // computation was reached. Ask the user if they wish to continue searching with double
+            // the computation length limit.
+            if (pair.getValue()) {
+                // Ask the user if they want to run for double the number of steps.
+                label.setText("There are no accepting computations for the input string of length" +
+                        " " + currentMaxSteps + " or less.\nWould you like to try again with a" +
+                        " computation length limit of " + (2 * currentMaxSteps) + "?");
 
-            // Remove the automatically generated ButtonType.OK
-            dialogPane.getButtonTypes().remove(ButtonType.OK);
+                // Double the maximum number of steps and run the PDA again using this method so the
+                // process can repeat
+                dialogPane.lookupButton(ButtonType.YES).addEventFilter(ActionEvent.ACTION, event -> {
+                    currentMaxSteps *= 2;
+                    alert.close();
+                    onQuickRunButtonClicked();
+                });
+                // Reset the currentMaxSteps if the user selects the No button
+                dialogPane.lookupButton(ButtonType.NO).addEventFilter(ActionEvent.ACTION, event ->
+                        currentMaxSteps = DEFAULT_MAX_STEPS);
+            }
+            else {
+                // If the second element of the pair is false, then the upper limit on the total
+                // number of steps across all computations was reached. Ask the user if they wish to
+                // run the PDA again with double the total steps limit.
+                label.setText("No accepting computations were found with a limit of " +
+                        currentMaxTotalSteps + " total steps.\nWould you like to try again " +
+                        "with a total step limit of " + (2 * currentMaxTotalSteps) + "?");
+
+                // Double the maximum number of allowed total steps and run the PDA again using
+                // this method so the  process can repeat
+                dialogPane.lookupButton(ButtonType.YES).addEventFilter(ActionEvent.ACTION, event -> {
+                    currentMaxTotalSteps *= 2;
+                    alert.close();
+                    onQuickRunButtonClicked();
+                });
+                // Reset the currentMaxTotalSteps if the user selects the No button
+                dialogPane.lookupButton(ButtonType.NO).addEventFilter(ActionEvent.ACTION, event ->
+                        currentMaxTotalSteps = DEFAULT_MAX_TOTAL_STEPS);
+            }
+
             alert.show();
             return;
         }

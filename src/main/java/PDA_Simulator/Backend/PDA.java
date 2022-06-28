@@ -6,6 +6,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.util.Pair;
 
 import java.util.*;
 
@@ -47,9 +48,12 @@ public class PDA {
     // A list to store all the accepting computations that are found when running the PDA on an
     // input string
     private final ArrayList<ArrayList<PDAConfiguration>> acceptingComputations = new ArrayList<>();
-    // A boolean to indicate whether the computation step limit was reached when searching for
-    // accepting computations
+    // A boolean to indicate whether the computation step limit was reached for any individual
+    // computation when searching for accepting computations
     private boolean hitMaxSteps = false;
+    // A boolean to indicate whether the maximum number of total steps across all computations was
+    // reached when searching for accepting computations.
+    private boolean hitMaxTotalSteps = false;
     // The set of transitions that cause nondeterminism.
     private final HashSet<PDATransition> nondeterministicTransitions = new HashSet<>();
 
@@ -572,21 +576,25 @@ public class PDA {
     /**
      * Generates all possible accepting computations (a computation is an ArrayList of
      * PDAConfigurations) for the given input string which contain a number of configurations (or
-     * steps) less than or equal to maxSteps. The return value of this method is the
-     * acceptingComputations ArrayList which is populated with all accepting computations during
-     * this method. If there cannot be any accepting computations regardless of the length limit,
-     * then returns null instead. See subsection 4.9.1 of the report for further details.
+     * steps) less than or equal to maxSteps. If the max total step limit is reached, then the
+     * computation terminates prematurely. The return value of this method is a pair consisting of
+     * the acceptingComputations ArrayList as well as a Boolean. If there cannot be any accepting
+     * computations regardless of the length limit, then returns null instead. See subsection 4.9.1
+     * of the report for further details.
      *
-     * @param inputString The input string the automaton is being run on.
-     * @param maxSteps    The maximum number of steps the computations are allowed to go on for.
-     * @return An ArrayList of all accepting computations or null if there can not be any.
+     * @param inputString   The input string the automaton is being run on.
+     * @param maxSteps      The maximum number of steps the computations are allowed to go on for.
+     * @param maxTotalSteps The maximum number of total steps across all computations.
+     * @return A pair where the first element is an ArrayList of all accepting computations and the
+     * second is a Boolean indicating whether the step limit or total step limit was reached. If no
+     * accepting computations were found without reaching either limit, then null is returned.
      */
-    public ArrayList<ArrayList<PDAConfiguration>> getAcceptingComputations(String inputString,
-                                                                           int maxSteps) {
-        // Start by clearing the previous acceptingComputations and resetting the hitMaxSteps
-        // boolean
+    public Pair<ArrayList<ArrayList<PDAConfiguration>>, Boolean> getAcceptingComputations(
+            String inputString, int maxSteps, int maxTotalSteps) {
+        // Start by clearing the previous acceptingComputations and resetting the booleans
         acceptingComputations.clear();
         hitMaxSteps = false;
+        hitMaxTotalSteps = false;
         // Get the initial configuration of this PDA. This is the configuration that all
         // computations start with.
         PDAConfiguration initialConfiguration = getInitialConfiguration(inputString);
@@ -595,19 +603,32 @@ public class PDA {
         computation.add(initialConfiguration);
         // Run the PDA with the initial computation and the step limit. This will add all
         // accepting computations that are discovered to the acceptingComputations ArrayList.
-        runPDAOnInputString(computation, maxSteps);
-        // If the PDA has at least one accepting computation or ran out of allowed steps before
-        // finding a solution, return the acceptingComputations ArrayList. If the PDA hit the step
-        // limit, then it could be the case that there are accepting computations but none were
-        // found with the step limit.
-        if (hitMaxSteps || !acceptingComputations.isEmpty()) {
+        runPDAOnInputString(computation, maxSteps, maxTotalSteps);
+        // If the PDA has at least one accepting computation or hit either the individual
+        // computation length limit or the total step limit, then return a Pair consisting of any
+        // discovered accepting computations as well as a Boolean that indicates which of the two
+        // limits was reached (if any). If a limit was reached, then it could be the case that there
+        // are accepting computations but none were found with the step limit.
+        if (hitMaxSteps || hitMaxTotalSteps || !acceptingComputations.isEmpty()) {
             // Sort the accepting computations so that the shortest computations are at the front
             Comparator<ArrayList<PDAConfiguration>> computationComparator =
                     Comparator.comparingInt(ArrayList::size);
             acceptingComputations.sort(computationComparator);
-            return acceptingComputations;
+            // If hitMaxTotalSteps is true, return false as the second element of the pair so that
+            // the calling method knows the total step limit was reached.
+            if (hitMaxTotalSteps) {
+                return new Pair<>(acceptingComputations, false);
+            }
+            // If hitMaxSteps is true, return true as the second element of the pair so that the
+            // calling method knows the individual computation step limit was reached for at least
+            // one computation.
+            if (hitMaxSteps) {
+                return new Pair<>(acceptingComputations, true);
+            }
+            return new Pair<>(acceptingComputations, null);
         }
-        // If the PDA did not hit the maximum number of steps and did not find an accepting
+        // If the PDA did not hit the maximum number of steps for any individual computation or the
+        // maximum number of total steps across all computations, and did not find an accepting
         // computation, then that means the PDA had no more applicable transitions for all
         // computations. Therefore, return null to indicate that the PDA rejects the input string.
         return null;
@@ -637,31 +658,43 @@ public class PDA {
 
     /**
      * Run the PDA in a depth-first search manner up to the limit of maxSteps and add any
-     * discovered accepting computations to the acceptingComputations field. See subsection 4.9.2
-     * of the report for further details.
+     * discovered accepting computations to the acceptingComputations field. Stop if the total step
+     * limit is reached. See subsection 4.9.2 of the report for further details.
      *
-     * @param computation The initial computation the PDA starts with, containing just the
-     *                    initial configuration
-     * @param maxSteps    The step limit which this depth-first search can explore up to.
+     * @param computation   The initial computation the PDA starts with, containing just the
+     *                      initial configuration
+     * @param maxSteps      The step limit which this depth-first search can explore up to.
+     * @param maxTotalSteps The total step limit across all computations
      */
-    private void runPDAOnInputString(ArrayList<PDAConfiguration> computation, int maxSteps) {
+    private void runPDAOnInputString(ArrayList<PDAConfiguration> computation, int maxSteps,
+                                     int maxTotalSteps) {
         // Maintain a stack of computations for the depth-first search
         Stack<ArrayList<PDAConfiguration>> openList = new Stack<>();
         openList.push(computation);
+        int totalSteps = 0;
 
         while (!openList.isEmpty()) {
+            totalSteps++;
             ArrayList<PDAConfiguration> current = openList.pop();
             // Extract the last configuration of the computation as the current configuration
             PDAConfiguration currentConfiguration = current.get(current.size() - 1);
 
-            // If we have reached the step limit, then set the hitMaxSteps boolean to true and do
-            // not continue the search. Add 1 to maxSteps before comparing to ensure that
-            // computations can contain the same number of configurations as the step limit. For
-            // example, if maxSteps = 5, without the + 1, the longest computations would have a
-            // length of 4 configurations rather than 5.
+            // If the step limit for an individual computation has been reached, then set th
+            // hitMaxSteps boolean to true and do not continue running the PDA on this particular
+            // computation. Add 1 to maxSteps before comparing to ensure that computations can
+            // contain the same number of configurations as the step limit. For example, if
+            // maxSteps = 5, without the + 1, the longest computations would have a length of 4
+            // configurations rather than 5.
             if (current.size() == maxSteps + 1) {
                 hitMaxSteps = true;
-            } else {
+            }
+            // If the total step limit across all computations is reached, set the hitMaxTotalSteps
+            // boolean to true and stop immediately.
+            else if (totalSteps >= maxTotalSteps) {
+                hitMaxTotalSteps = true;
+                return;
+            }
+            else {
                 // If the current configuration (at the end of the current computation) is an
                 // accepting configuration according to the acceptance criteria, then add this
                 // computation to acceptingComputations.
@@ -1009,6 +1042,7 @@ public class PDA {
 
     /**
      * Gets the transitions that cause nondeterminism.
+     *
      * @return The set of transitions that cause nondeterminism.
      */
     public HashSet<PDATransition> getNondeterministicTransitions() {
