@@ -22,56 +22,63 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="PDA_Simulator.Frontend.MainController">
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17"
+            fx:controller="PDA_Simulator.Frontend.MainController">
     <top>
         <MenuBar minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER">
             <Menu mnemonicParsing="false" text="File">
-                <MenuItem mnemonicParsing="false" onAction="#newPDA" text="New" />
-                <MenuItem mnemonicParsing="false" onAction="#open" text="Open" />
-                <MenuItem mnemonicParsing="false" onAction="#save" text="Save" />
-                <MenuItem mnemonicParsing="false" onAction="#saveAs" text="Save as..." />
+                <MenuItem mnemonicParsing="false" onAction="#newPDA" text="New"/>
+                <MenuItem mnemonicParsing="false" onAction="#open" text="Open"/>
+                <MenuItem mnemonicParsing="false" onAction="#save" text="Save"/>
+                <MenuItem mnemonicParsing="false" onAction="#saveAs" text="Save as..."/>
             </Menu>
-         <Menu mnemonicParsing="false" text="Edit">
-            <items>
-               <MenuItem mnemonicParsing="false" onAction="#undo" text="Undo" />
-               <MenuItem mnemonicParsing="false" onAction="#redo" text="Redo" />
-            </items>
-         </Menu>
+            <Menu mnemonicParsing="false" text="Edit">
+                <MenuItem mnemonicParsing="false" onAction="#undo" text="Undo"/>
+                <MenuItem mnemonicParsing="false" onAction="#redo" text="Redo"/>
+            </Menu>
             <Menu mnemonicParsing="false" text="Acceptance">
-                <RadioMenuItem mnemonicParsing="false" onAction="#onAcceptingStatesAcceptanceClick" selected="true" text="Accepting state">
+                <RadioMenuItem mnemonicParsing="false" onAction="#onAcceptingStatesAcceptanceClick"
+                               selected="true" text="Accepting state">
                     <toggleGroup>
-                        <ToggleGroup fx:id="acceptanceMenu" />
+                        <ToggleGroup fx:id="acceptanceMenu"/>
                     </toggleGroup>
                 </RadioMenuItem>
-                <RadioMenuItem mnemonicParsing="false" onAction="#onEmptyStackAcceptanceClick" text="Empty stack" toggleGroup="$acceptanceMenu" />
-                <RadioMenuItem mnemonicParsing="false" onAction="#onBothAcceptanceClick" text="Both" toggleGroup="$acceptanceMenu" />
+                <RadioMenuItem mnemonicParsing="false" onAction="#onEmptyStackAcceptanceClick"
+                               text="Empty stack" toggleGroup="$acceptanceMenu"/>
+                <RadioMenuItem mnemonicParsing="false" onAction="#onBothAcceptanceClick" text="Both"
+                               toggleGroup="$acceptanceMenu"/>
             </Menu>
             <Menu mnemonicParsing="false" text="Stack">
-                <RadioMenuItem fx:id="emptyStack" mnemonicParsing="false" onAction="#onEmptyStackClick" selected="true" text="Empty">
+                <RadioMenuItem fx:id="emptyStack" mnemonicParsing="false"
+                               onAction="#onEmptyStackClick" selected="true" text="Empty">
                     <toggleGroup>
-                        <ToggleGroup fx:id="stackMenu" />
+                        <ToggleGroup fx:id="stackMenu"/>
                     </toggleGroup>
                 </RadioMenuItem>
-                <RadioMenuItem mnemonicParsing="false" onAction="#onInitialStackSymbolClick" text="Initial stack symbol" toggleGroup="$stackMenu" />
+                <RadioMenuItem mnemonicParsing="false" onAction="#onInitialStackSymbolClick"
+                               text="Initial stack symbol" toggleGroup="$stackMenu"/>
             </Menu>
             <Menu mnemonicParsing="false" text="Transition function">
-                <RadioMenuItem mnemonicParsing="false" onAction="#onSymbolAndSymbolTransitionClick" selected="true" text="Pop symbol, push symbol">
+                <RadioMenuItem mnemonicParsing="false" onAction="#onSymbolAndSymbolTransitionClick"
+                               selected="true" text="Pop symbol, push symbol">
                     <toggleGroup>
-                        <ToggleGroup fx:id="transitionMenu" />
+                        <ToggleGroup fx:id="transitionMenu"/>
                     </toggleGroup>
                 </RadioMenuItem>
-                <RadioMenuItem mnemonicParsing="false" onAction="#onSymbolAndStringTransitionClick" text="Pop symbol, push string" toggleGroup="$transitionMenu" />
-                <RadioMenuItem mnemonicParsing="false" onAction="#onStringAndStringTransitionClick" text="Pop string, push string" toggleGroup="$transitionMenu" />
+                <RadioMenuItem mnemonicParsing="false" onAction="#onSymbolAndStringTransitionClick"
+                               text="Pop symbol, push string" toggleGroup="$transitionMenu"/>
+                <RadioMenuItem mnemonicParsing="false" onAction="#onStringAndStringTransitionClick"
+                               text="Pop string, push string" toggleGroup="$transitionMenu"/>
             </Menu>
             <Menu mnemonicParsing="false" text="Samples">
-                <MenuItem mnemonicParsing="false" onAction="#loadSample1" text="Sample 1" />
-                <MenuItem mnemonicParsing="false" onAction="#loadSample2" text="Sample 2" />
-                <MenuItem mnemonicParsing="false" onAction="#loadSample3" text="Sample 3" />
-                <MenuItem mnemonicParsing="false" onAction="#loadSample4" text="Sample 4" />
-                <MenuItem mnemonicParsing="false" onAction="#loadSample5" text="Sample 5" />
+                <MenuItem mnemonicParsing="false" onAction="#loadSample1" text="Sample 1"/>
+                <MenuItem mnemonicParsing="false" onAction="#loadSample2" text="Sample 2"/>
+                <MenuItem mnemonicParsing="false" onAction="#loadSample3" text="Sample 3"/>
+                <MenuItem mnemonicParsing="false" onAction="#loadSample4" text="Sample 4"/>
+                <MenuItem mnemonicParsing="false" onAction="#loadSample5" text="Sample 5"/>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
-                <MenuItem mnemonicParsing="false" onAction="#showHelpMenu" text="Show help" />
+                <MenuItem mnemonicParsing="false" onAction="#showHelpMenu" text="Show help"/>
             </Menu>
         </MenuBar>
     </top>
@@ -81,23 +88,27 @@
                 <VBox spacing="10" stylesheets="@../CSS/scrollPane.css" HBox.hgrow="ALWAYS">
                     <HBox>
                         <VBox.margin>
-                            <Insets top="10.0" />
+                            <Insets top="10.0"/>
                         </VBox.margin>
-                        <Pane HBox.hgrow="ALWAYS" />
+                        <Pane HBox.hgrow="ALWAYS"/>
                         <HBox prefWidth="220.0" spacing="10.0" stylesheets="@../CSS/buttons.css">
-                            <Button id="addState" mnemonicParsing="false" onAction="#onAddStateButtonClick" text="New state">
+                            <Button id="addState" mnemonicParsing="false"
+                                    onAction="#onAddStateButtonClick" text="New state">
                                 <graphic>
-                                    <ImageView fitHeight="10.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
-                                        <Image url="@../Images/plus.png" />
+                                    <ImageView fitHeight="10.0" fitWidth="10.0" pickOnBounds="true"
+                                               preserveRatio="true">
+                                        <Image url="@../Images/plus.png"/>
                                         <!--This image was created using  https://www.figma.com/-->
                                     </ImageView>
                                 </graphic>
                             </Button>
-                            <Button id="deterministic" fx:id="determinismButton" mnemonicParsing="false" onAction="#onDeterminismButtonClick" text="Deterministic" />
+                            <Button id="deterministic" fx:id="determinismButton"
+                                    mnemonicParsing="false" onAction="#onDeterminismButtonClick"
+                                    text="Deterministic"/>
                         </HBox>
                     </HBox>
                     <ScrollPane fitToHeight="true" fitToWidth="true">
-                        <Pane fx:id="canvas" stylesheets="@../CSS/textField.css" />
+                        <Pane fx:id="canvas" stylesheets="@../CSS/textField.css"/>
                     </ScrollPane>
                 </VBox>
             </HBox>
@@ -107,41 +118,51 @@
                     <VBox>
                         <Label text="Transition Table">
                             <VBox.margin>
-                                <Insets left="10.0" top="10.0" />
+                                <Insets left="10.0" top="10.0"/>
                             </VBox.margin>
                             <font>
-                                <Font name="System Bold" size="15.0" />
+                                <Font name="System Bold" size="15.0"/>
                             </font>
                         </Label>
                         <TableView fx:id="transitionTable" editable="true" VBox.vgrow="ALWAYS">
                             <columns>
-                                <TableColumn fx:id="currentState" minWidth="90.0" sortable="false" text="Current state" />
-                                <TableColumn fx:id="inputSymbol" minWidth="90.0" sortable="false" text="Input symbol" />
-                                <TableColumn fx:id="pop" minWidth="90.0" sortable="false" text="Pop symbol" />
-                                <TableColumn fx:id="push" minWidth="90.0" sortable="false" text="Push symbol" />
-                                <TableColumn fx:id="newState" minWidth="90.0" sortable="false" text="New state" />
+                                <TableColumn fx:id="currentState" minWidth="90.0" sortable="false"
+                                             text="Current state"/>
+                                <TableColumn fx:id="inputSymbol" minWidth="90.0" sortable="false"
+                                             text="Input symbol"/>
+                                <TableColumn fx:id="pop" minWidth="90.0" sortable="false"
+                                             text="Pop symbol"/>
+                                <TableColumn fx:id="push" minWidth="90.0" sortable="false"
+                                             text="Push symbol"/>
+                                <TableColumn fx:id="newState" minWidth="90.0" sortable="false"
+                                             text="New state"/>
                             </columns>
                             <VBox.margin>
-                                <Insets left="10.0" right="10.0" top="10.0" />
+                                <Insets left="10.0" right="10.0" top="10.0"/>
                             </VBox.margin>
                             <columnResizePolicy>
-                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                             </columnResizePolicy>
                         </TableView>
                         <VBox spacing="10.0">
                             <VBox.margin>
-                                <Insets bottom="10.0" left="10.0" right="10.0" top="20.0" />
+                                <Insets bottom="10.0" left="10.0" right="10.0" top="20.0"/>
                             </VBox.margin>
                             <HBox spacing="1.0" stylesheets="@../CSS/textField.css">
-                                <TextField fx:id="currentStateTextField" promptText="Current state" />
-                                <TextField fx:id="inputSymbolTextField" promptText="Input symbol" />
-                                <TextField fx:id="popTextField" promptText="Pop symbol" />
-                                <TextField fx:id="pushTextField" promptText="Push symbol" />
-                                <TextField fx:id="newStateTextField" promptText="New state" />
+                                <TextField fx:id="currentStateTextField"
+                                           promptText="Current state"/>
+                                <TextField fx:id="inputSymbolTextField" promptText="Input symbol"/>
+                                <TextField fx:id="popTextField" promptText="Pop symbol"/>
+                                <TextField fx:id="pushTextField" promptText="Push symbol"/>
+                                <TextField fx:id="newStateTextField" promptText="New state"/>
                             </HBox>
                             <HBox spacing="10.0">
-                                <Button fx:id="addTransitionButton" mnemonicParsing="false" onAction="#onAddTransitionButtonClick" text="Add transition" />
-                                <Button mnemonicParsing="false" onAction="#onDeleteTransitionButtonClick" text="Delete transition" />
+                                <Button fx:id="addTransitionButton" mnemonicParsing="false"
+                                        onAction="#onAddTransitionButtonClick"
+                                        text="Add transition"/>
+                                <Button mnemonicParsing="false"
+                                        onAction="#onDeleteTransitionButtonClick"
+                                        text="Delete transition"/>
                             </HBox>
                         </VBox>
                     </VBox>
@@ -150,24 +171,27 @@
                 <ScrollPane fitToHeight="true" fitToWidth="true" minHeight="0">
                     <VBox spacing="5.0">
                         <padding>
-                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                         </padding>
-                        <Label text="Enter input string (leave blank for empty string)" />
-                        <TextField fx:id="inputString" />
+                        <Label text="Enter input string (leave blank for empty string)"/>
+                        <TextField fx:id="inputString"/>
                         <HBox spacing="10.0">
                             <VBox.margin>
-                                <Insets top="10.0" />
+                                <Insets top="10.0"/>
                             </VBox.margin>
-                            <Button mnemonicParsing="false" onAction="#onQuickRunButtonClicked" text="Quick run" />
-                            <Button mnemonicParsing="false" onAction="#onStepByStepButtonClicked" text="Step-by-step" />
-                            <Button mnemonicParsing="false" onAction="#onAnimationButtonClicked" text="Animation" />
+                            <Button mnemonicParsing="false" onAction="#onQuickRunButtonClicked"
+                                    text="Quick run"/>
+                            <Button mnemonicParsing="false" onAction="#onStepByStepButtonClicked"
+                                    text="Step-by-step"/>
+                            <Button mnemonicParsing="false" onAction="#onAnimationButtonClicked"
+                                    text="Animation"/>
                         </HBox>
                         <VBox spacing="5.0" VBox.vgrow="ALWAYS">
                             <VBox.margin>
-                                <Insets top="20.0" />
+                                <Insets top="20.0"/>
                             </VBox.margin>
-                            <Label text="Notes:" />
-                            <TextArea fx:id="notes" wrapText="true" VBox.vgrow="ALWAYS" />
+                            <Label text="Notes:"/>
+                            <TextArea fx:id="notes" wrapText="true" VBox.vgrow="ALWAYS"/>
                         </VBox>
                     </VBox>
                 </ScrollPane>

@@ -59,7 +59,13 @@
             fields automatically and then press the delete transition button.
         </Label>
         <Label wrapText="true">The vertical and horizontal separators can be dragged to allow you to
-            focus on whatever is important to you.
+            focus on whatever is important to you. You can undo and redo using the edit menu or the
+            keyboard shortcuts ctrl+z and ctrl+y, respectively. The shortcut ctrl+a can be used to
+            select all nodes at once. Once selected, you can drag one node to move them all or press
+            delete/backspace to delete all selected nodes. You can also manually select nodes using
+            a selection rectangle by clicking and dragging in the blank space that the nodes are
+            contained within. The three keyboard shortcuts mentioned here do not work if you are
+            editing any of the text fields underneath the transition table or the notes section.
         </Label>
         <Label wrapText="true">This simulator supports popping and pushing of strings of symbols to
             the stack. When a string is pushed to the stack, the string is pushed onto the stack in
@@ -207,7 +213,10 @@
             PDA. The reason this is nondeterministic is because if you are in q0 and you read an "a"
             from the input tape, then you can apply either transition if there is an "A" on the top
             of the stack. This is similar to the previous condition of determinism but applies to
-            the stack rather than to the input symbol.
+            the stack rather than to the input symbol. This third condition can also apply if the
+            input symbols are different provided one of them is the empty string. For example,
+            having both the transitions (q0, ε, A) -> (q1, ε) and (q0, a, ε) -> (q1, ε) would cause
+            nondeterminism.
         </Label>
         <Label wrapText="true">For the transition function that allows for popping of strings, the
             final condition is a little different. This is because it is possible for two different
@@ -222,6 +231,9 @@
             accepting computations for a single input string. This is when you have epsilon
             transitions out of an accepting configuration and back into an accepting configuration.
         </Label>
+        <Label wrapText="true">You can also click on the determinism button when it is red and says
+            "Nondeterministic" to highlight the transitions that cause nondeterminism.
+        </Label>
         <Separator prefWidth="200.0"/>
         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Quick run" underline="true">
             <font>
@@ -231,11 +243,13 @@
         <Label wrapText="true">The quick run mode allows you to run the PDA on an input word to see
             if it is accepted or not. If it is accepted, all of the discovered accepting
             computations are viewable in the dialog that opens with the use of the Previous and Next
-            buttons. It is also possible to watch an animation of the PDA on the currently displayed
-            computation by pressing the Play animation button. By default, the simulator only
-            returns computations which have a length of 50 configurations or less. If the PDA is
-            unable to fully consume the input string within 50 steps, you can run it again with
-            double the number of steps.
+            buttons. By default, the simulator only returns computations which have a length of 50
+            configurations or less. If the PDA is unable to fully consume the input string within 50
+            steps, you can run it again with double the number of steps. Additionally, the simulator
+            has a default limit on the total number of steps across all parallel computations of
+            5000 steps. As with the individual length limit, this limit can be doubled if no
+            accepting computations were discovered. Note that the discovered accepting computations
+            are not guaranteed to be an exhaustive list due to the two types of limit.
         </Label>
         <Label wrapText="true">It is possible for PDAs to have computations of infinite length. In
             such situations, the simulator is not always able to tell that the input word has no

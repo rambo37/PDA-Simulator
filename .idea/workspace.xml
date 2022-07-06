@@ -12,10 +12,7 @@
     <list default="true" id="ce2ad145-6331-4c80-8e5d-5a9be7889f30" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/main/FXML/main-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/main/FXML/main-view.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/MainController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNodeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNodeController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/FXML/main-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/FXML/main-view.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/FXML/help-menu.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/FXML/help-menu.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,6 +28,14 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="ProjectId" id="2ACwW8jRGI5QycnFRh7eNxNXaQe" />
   <component name="ProjectViewState">
