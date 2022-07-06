@@ -34,11 +34,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Stack;
 
 /**
  * This class is the main controller of the application and handles all the MenuBar functionality,
  * the creation and manipulation of the underlying PDA object for other controllers and the quick
- * run functionality.
+ * run functionality. Also provides support for undo and redo functionality however some of this is
+ * done in the PDAStateNode and PDAStateNodeController classes as the user can also make changes to
+ * the simulator state in those classes.
  *
  * @author Savraj Bassi
  */
@@ -102,6 +105,12 @@ public class MainController {
     private boolean nodeDrag = false;
     // Whether the nondeterministic transitions are currently highlighted or not
     private boolean nondeterminismHighlighted = false;
+    // A stack to store changes that can be undone
+    private final Stack<String> undo = new Stack<>();
+    // A stack to store changes that can be redone
+    private final Stack<String> redo = new Stack<>();
+    // Whether the transition function changed as a result of the user
+    private boolean userChangedTransitionFunction = true;
     // Below are all the components with fx:ids in main-view.fxml.
     @FXML
     private ToggleGroup acceptanceMenu = new ToggleGroup();
@@ -193,6 +202,9 @@ public class MainController {
             newTransition = new PDATransition(event.getNewValue(), inputSymbol, popString,
                     pushString, newState);
 
+            // Create a save of the simulator state before the change so the change can be undone
+            getAndStoreSimulatorState();
+
             boolean successful = pda.editTransition(oldTransition, newTransition);
             if (!successful) {
                 // If a transition was just changed into an existing transition, refresh the table
@@ -213,6 +225,8 @@ public class MainController {
             newTransition = new PDATransition(currentState, event.getNewValue(), popString,
                     pushString, newState);
 
+            getAndStoreSimulatorState();
+
             boolean successful = pda.editTransition(oldTransition, newTransition);
             if (!successful) {
                 transitionTable.refresh();
@@ -230,6 +244,8 @@ public class MainController {
             PDATransition newTransition;
             newTransition = new PDATransition(currentState, inputSymbol, event.getNewValue(),
                     pushString, newState);
+
+            getAndStoreSimulatorState();
 
             boolean successful = pda.editTransition(oldTransition, newTransition);
             if (!successful) {
@@ -249,6 +265,8 @@ public class MainController {
             newTransition = new PDATransition(currentState, inputSymbol, popString,
                     event.getNewValue(), newState);
 
+            getAndStoreSimulatorState();
+
             boolean successful = pda.editTransition(oldTransition, newTransition);
             if (!successful) {
                 transitionTable.refresh();
@@ -266,6 +284,8 @@ public class MainController {
             PDATransition newTransition;
             newTransition = new PDATransition(currentState, inputSymbol, popString, pushString,
                     event.getNewValue());
+
+            getAndStoreSimulatorState();
 
             boolean successful = pda.editTransition(oldTransition, newTransition);
             if (!successful) {
@@ -351,6 +371,23 @@ public class MainController {
     }
 
     /**
+     * Stores the current simulator state in the undo stack if it is not already at the top of the
+     * stack and clears the redo stack since a change has just been made. As this method does not
+     * add to the stack if the item is already at the top of the stack, it is safe to call this
+     * method even if a change does not occur. This could happen for example if the user edits a
+     * transition into an existing transition. Nothing actually changes in that situation but a
+     * duplicate save will not be added.
+     */
+    public void getAndStoreSimulatorState() {
+        String simulatorState = generateString();
+
+        redo.clear();
+        if (undo.empty() || !undo.peek().equals(simulatorState)) {
+            undo.push(simulatorState);
+        }
+    }
+
+    /**
      * Checks if the given PDAStateNode is within the selection rectangle.
      * @param stateNode The PDAStateNode being checked.
      * @return True if the node is within the rectangle and false otherwise.
@@ -416,6 +453,10 @@ public class MainController {
                 emptyStack.setSelected(true);
                 onEmptyStackClick();
             } else {
+                // Create a save of the simulator state and push it to the undo stack if the user
+                // changes the initial stack symbol.
+                getAndStoreSimulatorState();
+
                 pda.setInitialStackSymbol(textField.getText());
             }
             // Hide the error label upon closure, so it is not visible when the dialog is reopened
@@ -738,6 +779,7 @@ public class MainController {
             pdaStateNodeController.setPushTextFormatter(symbolTextFormatter());
             pdaStateNodeController.setStateNodes(stateNodes);
             pdaStateNodeController.setApplicationIcon(APPLICATION_ICON);
+            pdaStateNodeController.setMainController(this);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -836,8 +878,8 @@ public class MainController {
                 windowEvent.consume();
             }
         });
-        // Add listeners to the stage to support the usual keyboard shortcuts for new, open and
-        // save/save as.
+        // Add listeners to the stage to support the usual keyboard shortcuts for new, open,
+        // save/save as, select all, undo and redo.
         stage.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.isControlDown() && event.getCode() == KeyCode.N) {
                 newPDA();
@@ -848,8 +890,16 @@ public class MainController {
             if (event.isControlDown() && event.getCode() == KeyCode.S) {
                 save();
             }
+            if (event.isControlDown() && event.getCode() == KeyCode.Z) {
+                undo();
+            }
+            if (event.isControlDown() && event.getCode() == KeyCode.Y) {
+                redo();
+            }
             // Allow deletion of selected states with the backspace/delete keys.
             if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
+                // Create a save before deleting all selected states so that this can be undone
+                getAndStoreSimulatorState();
                 ArrayList<PDAStateNode> selectedNodes = new ArrayList<>();
                 for (PDAStateNode stateNode : stateNodes) {
                     if (stateNode.isSelected()) {
@@ -968,6 +1018,16 @@ public class MainController {
         sampleClicked = false;
         // Reset the PDA
         reset(true);
+        // Clear the undo and redo stacks now that a new PDA has been created
+        clearStacks();
+    }
+
+    /**
+     * Clears the undo and redo stacks.
+     */
+    private void clearStacks() {
+        undo.clear();
+        redo.clear();
     }
 
     /**
@@ -998,6 +1058,8 @@ public class MainController {
                 fileChooser.setInitialDirectory(file.getParentFile());
                 String fullString = new String(Files.readAllBytes(Paths.get(file.toString())));
                 loadPDAFromString(fullString, file);
+                // Clear the undo and redo stacks now that a PDA has been loaded
+                clearStacks();
             } catch (IOException e) {
                 displayInvalidFileAlert();
             }
@@ -1123,9 +1185,15 @@ public class MainController {
 
             int equalsIndex = frontendString.indexOf("=");
             int notesIndex = frontendString.indexOf("\n");
+            notes.setText(frontendString.substring(notesIndex + 1));
+
             String transitionFunction =
                     frontendString.substring(equalsIndex + 2, notesIndex).replace("]}", "");
             transitionFunction = transitionFunction.trim();
+
+            // Set userChangedTransitionFunction to false before calling the function corresponding
+            // to the selected transition function to prevent creating an invalid save
+            userChangedTransitionFunction = false;
 
             // Select the appropriate transition function from the menu and invoke its respective
             // method
@@ -1145,6 +1213,9 @@ public class MainController {
                     transitionMenu.getToggles().get(2).setSelected(true);
                 }
             }
+            // Reset the boolean after updating the transition function so that saves continue to be
+            // made if the user changes the transition function themselves
+            userChangedTransitionFunction = true;
 
             // Set the text of the initialStackSymbolDialog to the initial stack symbol if it is
             // not null and select the Initial Stack Symbol menuItem.
@@ -1156,8 +1227,6 @@ public class MainController {
                 textField.setText("");
                 emptyStack.setSelected(true);
             }
-
-            notes.setText(frontendString.substring(notesIndex + 1));
 
             // Update the file field with the value of the file parameter. If the file parameter
             // was null, then the file field should also be null since the PDA was not loaded from a
@@ -1218,7 +1287,8 @@ public class MainController {
      * Generates a string that contains all the information needed to reconstruct the PDA the
      * user has built. This is achieved by first calling the toString method of the pda object
      * and then appending information that is only known in the frontend. This includes the
-     * positions of all the PDAStateNodes and the selected transition function.
+     * positions of all the PDAStateNodes and the selected transition function. Used for saving
+     * PDAs as well as for undo/redo.
      *
      * @return A complete string that can be used to rebuild the PDA and set up the frontend of
      * the application
@@ -1266,11 +1336,69 @@ public class MainController {
         }
     }
 
+
+    /**
+     * Undoes the change at the top of the undo stack if no text field is focused and there is at
+     * least one String on the stack.
+     */
+    @FXML
+    private void undo() {
+        // Do not undo changes if any of the TextFields or the notes TextArea currently have focus.
+        // This is to prevent changes outside the TextFields/notes area being undone when the user
+        // presses undo.
+        if (textFieldFocused()) {
+            return;
+        }
+
+        if (!undo.empty()) {
+            // If the simulator state at the top of the stack is the same as the current simulator
+            // state, then pop that String. This is to ensure that pressing the undo button will
+            // always undo the last change, if there is one.
+            String currentSimulatorState = generateString();
+            if (undo.peek().equals(currentSimulatorState)) {
+                undo.pop();
+            }
+            // If undo is not empty after popping the current state (only if it was necessary), then
+            // undo the last change by loading the previous state
+            if (!undo.isEmpty()) {
+                String previousSimulatorState = undo.pop();
+                // Load the previous simulator state to undo the last change
+                loadPDAFromString(previousSimulatorState, file);
+
+                // Push the current state to the redo stack so that it can be restored if the user
+                // presses redo.
+                redo.push(currentSimulatorState);
+            }
+        }
+    }
+
+    /**
+     * Redoes the change at the top of the redo stack if no text field is focused.
+     */
+    @FXML
+    private void redo() {
+        // Do not redo changes if any of the TextFields or the notes TextArea currently have focus.
+        // This is to prevent changes outside the TextFields/notes area being redone when the user
+        // presses redo.
+        if (textFieldFocused()) {
+            return;
+        }
+
+        if (!redo.empty()) {
+            // Push the current state to the undo stack before redoing so that the user can undo
+            undo.push(generateString());
+            String futureSimulatorState = redo.pop();
+            loadPDAFromString(futureSimulatorState, file);
+        }
+    }
+
     /**
      * Changes the acceptance criteria of the PDA to accepting state.
      */
     @FXML
     private void onAcceptingStatesAcceptanceClick() {
+        // Create a save of the simulator state before the change so the change can be undone
+        getAndStoreSimulatorState();
         pda.changeAcceptanceCriteria(AcceptanceCriteria.ACCEPTING_STATE);
     }
 
@@ -1279,6 +1407,7 @@ public class MainController {
      */
     @FXML
     private void onEmptyStackAcceptanceClick() {
+        getAndStoreSimulatorState();
         pda.changeAcceptanceCriteria(AcceptanceCriteria.EMPTY_STACK);
     }
 
@@ -1287,6 +1416,7 @@ public class MainController {
      */
     @FXML
     private void onBothAcceptanceClick() {
+        getAndStoreSimulatorState();
         pda.changeAcceptanceCriteria(AcceptanceCriteria.BOTH);
     }
 
@@ -1295,6 +1425,8 @@ public class MainController {
      */
     @FXML
     private void onEmptyStackClick() {
+        // Create a save of the simulator state before the change so the change can be undone
+        getAndStoreSimulatorState();
         pda.setInitialStackSymbol(null);
     }
 
@@ -1323,6 +1455,12 @@ public class MainController {
      */
     @FXML
     private void onSymbolAndSymbolTransitionClick() {
+        // Create a save to allow the user to undo the change to the transition function if it is
+        // the user that invoked this method. This check is necessary since the loadPDAFromString
+        // method could potentially call this method.
+        if (userChangedTransitionFunction) {
+            getAndStoreSimulatorState();
+        }
         selectedTransitionFunction = TransitionFunction.SYMBOL_AND_SYMBOL;
         updateText(pop, popTextField, "Pop symbol");
         popTextField.setTextFormatter(symbolTextFormatter());
@@ -1340,6 +1478,9 @@ public class MainController {
      */
     @FXML
     private void onSymbolAndStringTransitionClick() {
+        if (userChangedTransitionFunction) {
+            getAndStoreSimulatorState();
+        }
         selectedTransitionFunction = TransitionFunction.SYMBOL_AND_STRING;
         updateText(pop, popTextField, "Pop symbol");
         popTextField.setTextFormatter(symbolTextFormatter());
@@ -1357,6 +1498,9 @@ public class MainController {
      */
     @FXML
     private void onStringAndStringTransitionClick() {
+        if (userChangedTransitionFunction) {
+            getAndStoreSimulatorState();
+        }
         selectedTransitionFunction = TransitionFunction.STRING_AND_STRING;
         updateText(pop, popTextField, "Pop string");
         popTextField.setTextFormatter(stringTextFormatter());
@@ -1405,6 +1549,8 @@ public class MainController {
 
         // Pass null as the file since this string is not from a user file
         loadPDAFromString(sample1, null);
+        // Clear the undo and redo stacks now that a PDA has been loaded
+        clearStacks();
         // Set sampleClicked to true since the user loaded a sample
         sampleClicked = true;
     }
@@ -1433,6 +1579,7 @@ public class MainController {
                 "automaton to end in an accepting state, strings consisting of just the symbol " +
                 "'a' are not accepted.";
         loadPDAFromString(sample2, null);
+        clearStacks();
         sampleClicked = true;
     }
 
@@ -1456,6 +1603,7 @@ public class MainController {
                 "abba\n" +
                 "aaaaaabbbbbbaaaaaa";
         loadPDAFromString(sample3, null);
+        clearStacks();
         sampleClicked = true;
     }
 
@@ -1485,6 +1633,7 @@ public class MainController {
                 "with no interleaving (like AABB), the automaton has only a single accepting " +
                 "computation.";
         loadPDAFromString(sample4, null);
+        clearStacks();
         sampleClicked = true;
     }
 
@@ -1511,6 +1660,7 @@ public class MainController {
                 "Like sample 4, this PDA can have multiple accepting computations for a given " +
                 "input word.";
         loadPDAFromString(sample5, null);
+        clearStacks();
         sampleClicked = true;
     }
 
@@ -1520,6 +1670,8 @@ public class MainController {
      */
     @FXML
     private void onAddStateButtonClick() {
+        // Create a save of the simulator state before the change so the change can be undone
+        getAndStoreSimulatorState();
         pda.addState();
     }
 
@@ -1571,6 +1723,9 @@ public class MainController {
             return;
         }
 
+        // Create a save of the simulator state before the change so the change can be undone
+        getAndStoreSimulatorState();
+
         PDATransition transition = getTransitionFromTextFields();
         boolean successful = pda.addTransition(transition);
         if (!successful) {
@@ -1614,6 +1769,8 @@ public class MainController {
      */
     @FXML
     private void onDeleteTransitionButtonClick() {
+        // Create a save of the simulator state before the change so the change can be undone
+        getAndStoreSimulatorState();
         PDATransition transition = getTransitionFromTextFields();
         pda.deleteTransition(transition);
     }

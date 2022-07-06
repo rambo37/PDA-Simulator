@@ -42,6 +42,7 @@ public class PDAStateNodeController {
     private TextFormatter<String> pushTextFormatter;
     // The application icon for use in the dialogs
     private Image applicationIcon;
+    private MainController mainController;
 
     // Below are all the components with fx:ids in transition-dialog-content.fxml.
     @FXML
@@ -96,6 +97,21 @@ public class PDAStateNodeController {
      */
     public void setApplicationIcon(Image applicationIcon) {
         this.applicationIcon = applicationIcon;
+    }
+
+    /**
+     * Sets the mainController.
+     * @param mainController The mainController.
+     */
+    public void setMainController(MainController mainController) {
+        this.mainController = mainController;
+    }
+
+    /**
+     * Stores the current simulator state in the undo stack of the mainController.
+     */
+    public void storeSimulatorState() {
+        mainController.getAndStoreSimulatorState();
     }
 
     /**
@@ -401,6 +417,9 @@ public class PDAStateNodeController {
                 // the error message.
                 event.consume();
             } else {
+                // Create a save of the simulator state before attempting to edit the transition so
+                // that the edit can be undone
+                mainController.getAndStoreSimulatorState();
                 // Show an appropriate error message and prevent dialog closure if the edit is
                 // invalid.
                 if (!MainController.editTransition(transition, newTransition)) {
@@ -491,6 +510,10 @@ public class PDAStateNodeController {
             String pushString = pushTextField.getText();
             PDATransition transition = new PDATransition(currentState, inputSymbol, popString,
                     pushString, newState);
+
+            // Create a save of the simulator state before attempting to create the transition so
+            // that the creation of the transition can be undone
+            mainController.getAndStoreSimulatorState();
             boolean successful = MainController.addTransition(transition);
             // If the transition already exists, show the user an error message and consume the
             // event to prevent closure

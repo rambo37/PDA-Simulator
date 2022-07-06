@@ -165,6 +165,9 @@ public class PDAStateNode extends Group {
      */
     private void setOnMousePressedEvent(Node node) {
         node.setOnMousePressed((event) -> {
+            // Create a save of the current simulator state as soon as the node is clicked on so
+            // that if any drag occurs, it can be undone
+            pdaStateNodeController.storeSimulatorState();
             if (event.isPrimaryButtonDown()) {
                 // Update the x and y fields of this PDAStateNode to point to wherever the user
                 // clicks.
@@ -530,6 +533,10 @@ public class PDAStateNode extends Group {
                 if (stateNameTextField.getText().length() == 0) {
                     stateNameTextField.setId("error");
                 } else {
+                    // Create a save of the current simulator state before attempting to commit the
+                    // state renaming so that it can be undone
+                    pdaStateNodeController.storeSimulatorState();
+
                     // Set the state name string of this PDAStateNode to the name in the textField
                     // before renaming the state so that the initialState property listener in
                     // MainController can use the new name to decide whether to make this node an
@@ -598,6 +605,10 @@ public class PDAStateNode extends Group {
                 checkBox.setSelected(oldPropertyValue);
                 checkBox.selectedProperty().addListener(acceptingStateListener);
             } else {
+                // Create a save of the current simulator state whenever this listener fires so that
+                // the change made to the accepting states can be undone
+                pdaStateNodeController.storeSimulatorState();
+
                 // If the node is editable, then change whether this state is accepting or not
                 pdaStateNodeController.changeAcceptingState(stateName);
             }
@@ -666,6 +677,9 @@ public class PDAStateNode extends Group {
         // PDAStateNode if the new value is true. If the new value is false, then it sets the
         // initial state to null.
         isInitialStateListener = (observableValue, oldValue, newValue) -> {
+            // Create a save of the current simulator state as soon as the initial state is changed
+            // so that any change to the initial state can be undone
+            pdaStateNodeController.storeSimulatorState();
             if (newValue) {
                 pdaStateNodeController.changeInitialState(stateName);
             } else {
@@ -682,6 +696,10 @@ public class PDAStateNode extends Group {
 
         MenuItem delete = new MenuItem("Delete");
         delete.setOnAction(event -> {
+            // Create a save of the current simulator state as soon as the delete menu item is
+            // clicked on so that the state deletion can be undone
+            pdaStateNodeController.storeSimulatorState();
+
             pdaStateNodeController.deleteState(stateName);
             Pane canvas = (Pane) getParent();
             canvas.getChildren().remove(this);

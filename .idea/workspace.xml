@@ -11,9 +11,11 @@
   <component name="ChangeListManager">
     <list default="true" id="ce2ad145-6331-4c80-8e5d-5a9be7889f30" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Backend/PDA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Backend/PDA.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/main/FXML/main-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/main/FXML/main-view.fxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/MainController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/MainController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/PDA_Simulator/PDATest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/PDA_Simulator/PDATest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNodeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PDA_Simulator/Frontend/PDAStateNodeController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/FXML/main-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/FXML/main-view.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,7 +51,7 @@
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="restartRequiresConfirmation" value="false" />
   </component>
-  <component name="RunManager" selected="JUnit.PDATest">
+  <component name="RunManager" selected="Application.PDASimulator">
     <configuration name="PDASimulator" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="PDA_Simulator.Frontend.PDASimulator" />
       <module name="main" />
@@ -135,8 +137,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JUnit.PDATest" />
         <item itemvalue="Application.PDASimulator" />
+        <item itemvalue="JUnit.PDATest" />
         <item itemvalue="JUnit.PDATest.getAcceptingComputations3" />
         <item itemvalue="JUnit.PDATest.runSample1PDA" />
         <item itemvalue="JUnit.PDATransitionTest" />
