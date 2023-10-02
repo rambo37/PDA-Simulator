@@ -135,9 +135,9 @@ public class PDA {
                             if (popStringI.startsWith(popStringJ) ||
                                     popStringJ.startsWith(popStringI)) {
                                 nonDeterministic = true;
+                                nondeterministicTransitions.add(stateTransitions.get(i));
+                                nondeterministicTransitions.add(stateTransitions.get(j));
                             }
-                            nondeterministicTransitions.add(stateTransitions.get(i));
-                            nondeterministicTransitions.add(stateTransitions.get(j));
                             // If we have two transitions with the same current state and input
                             // symbol (or at least one of the transition input symbols is epsilon)
                             // but at least one of them pops nothing (i.e. it doesn't care
