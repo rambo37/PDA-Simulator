@@ -77,15 +77,11 @@ public class PDA {
         boolean nonDeterministic = false;
         // Clear the set of nondeterministic transitions to begin with
         nondeterministicTransitions.clear();
-        ArrayList<PDATransition> stateTransitions = new ArrayList<>();
+        List<PDATransition> stateTransitions = new ArrayList<>();
         // Find all transitions belonging to each state
         for (String state : states) {
             stateTransitions.clear();
-            for (PDATransition transition : transitions) {
-                if (transition.getCurrentState().equals(state)) {
-                    stateTransitions.add(transition);
-                }
-            }
+            stateTransitions = getTransitionsForState(state);
             // Check for nondeterminism in the set of state transitions.
             if (stateTransitions.size() > 1) {
                 for (int i = 0; i < stateTransitions.size() - 1; i++) {
@@ -154,6 +150,21 @@ public class PDA {
         if (nonDeterministic == deterministic.get()) {
             updateDeterminism();
         }
+    }
+
+    /**
+     * Returns all the transitions for a given state.
+     * @param state The state for which transitions are to be retrieved.
+     * @return A List of all transitions belonging to the specified state.
+     */
+    private List<PDATransition> getTransitionsForState(String state) {
+        List<PDATransition> stateTransitions = new ArrayList<>();
+        for (PDATransition transition : transitions) {
+            if (transition.getCurrentState().equals(state)) {
+                stateTransitions.add(transition);
+            }
+        }
+        return stateTransitions;
     }
 
     /**
@@ -730,24 +741,21 @@ public class PDA {
      */
     public ArrayList<PDATransition> getApplicableTransitions(PDAConfiguration configuration) {
         ArrayList<PDATransition> applicableTransitions = new ArrayList<>();
-
-        for (PDATransition transition : transitions) {
-            String currentState = configuration.getState();
+        // Only need to consider the transitions for the current state of the configuration
+        List<PDATransition> stateTransitions = getTransitionsForState(configuration.getState());
+        for (PDATransition transition : stateTransitions) {
             String inputSymbol = configuration.getInputSymbol();
             Stack<String> stack = configuration.getStack();
-            // First check if the current state matches
-            if (transition.getCurrentState().equals(currentState)) {
-                // Then check if the input symbol matches - it can match either if it is empty or
-                // if they are equal. If inputSymbol is null (due to the entire string being
-                // consumed or the input string being the empty string), then a transition is
-                // only potentially applicable if its input symbol is empty.
-                if (transition.getInputSymbol().isEmpty() ||
-                        transition.getInputSymbol().equals(inputSymbol)) {
-                    String popString = transition.getPopString();
-                    // Check if the current stack has the pop string of the transition
-                    if (stackHasPopString(stack, popString)) {
-                        applicableTransitions.add(transition);
-                    }
+            // Check if the input symbol matches - it can match either if it is empty or if they
+            // are equal. If inputSymbol is null (due to the entire string being consumed or the
+            // input string being the empty string), then a transition is only potentially
+            // applicable if its input symbol is empty.
+            if (transition.getInputSymbol().isEmpty() ||
+                    transition.getInputSymbol().equals(inputSymbol)) {
+                String popString = transition.getPopString();
+                // Check if the current stack has the pop string of the transition
+                if (stackHasPopString(stack, popString)) {
+                    applicableTransitions.add(transition);
                 }
             }
         }
