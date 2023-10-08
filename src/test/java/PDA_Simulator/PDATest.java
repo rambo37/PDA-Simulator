@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PDATest {
     private PDA pda;
+    PDATransition t1 = new PDATransition("q0", "a", "", "A", "q1");
 
     /**
      * Modifies the pda variable to a new PDA with two states and a single transition.
@@ -25,7 +26,6 @@ class PDATest {
         pda.addState();
         // This creates another state, q1
         pda.addState();
-        PDATransition t1 = new PDATransition("q0", "a", "", "A", "q1");
         pda.addTransition(t1);
     }
 
@@ -1531,5 +1531,151 @@ class PDATest {
                 " acceptingStates=[q1], initialStackSymbol=null," +
                 " acceptanceCriteria=ACCEPTING_STATE}");
         assertEquals(50, pda2.getRandomComputation("a").size());
+    }
+
+    @Test
+    void getNonDeterministicTransitionsTest() {
+        // transitions: [{(q0,a,) -> (A,q1)}]
+        assertTrue(pda.getDeterministic());
+        PDATransition t2 = new PDATransition("q0", "", "B", "A", "q0");
+        pda.addTransition(t2);
+        // transitions: [{(q0,a,) -> (A,q1)}, {(q0,,B) -> (A,q0)}]
+        // Adding this epsilon transition makes the PDA nondeterministic
+        assertFalse(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().contains(t1));
+        assertTrue(pda.getNondeterministicTransitions().contains(t2));
+        pda.deleteTransition(t2);
+        // transitions: [{(q0,,) -> (A,q1)}]
+
+        // PDA is deterministic again once the epsilon transition is removed
+        assertTrue(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().isEmpty());
+        // ----------------------------------------------------------------------------------------
+        // Adding this epsilon transition also makes the PDA nondeterministic
+        PDATransition t3 = new PDATransition("q0", "", "", "A", "q1");
+        pda.addTransition(t3);
+        // transitions: [{(q0,a,) -> (A,q1)}, {(q0,,) -> (A,q1)}]
+        assertFalse(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().contains(t1));
+        assertTrue(pda.getNondeterministicTransitions().contains(t3));
+
+        // PDA is deterministic if t3 is the only transition it has from state q0
+        pda.deleteTransition(t1);
+        // transitions: [{(q0,,) -> (A,q1)}]
+        assertTrue(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().isEmpty());
+        // ----------------------------------------------------------------------------------------
+        // Adding this transition does not cause nondeterminism since it is the only transition
+        // from state q1
+        PDATransition t4 = new PDATransition("q1", "", "", "A", "q1");
+        pda.addTransition(t4);
+        // transitions: [{(q0,,) -> (A,q1)}, {(q1,,) -> (A,q1)}]
+        assertTrue(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().isEmpty());
+
+        // PDA is no longer deterministic since it has a full epsilon transition and another
+        // transition from state q0. Full epsilon transition meaning that both the input symbol and
+        // pop string are epsilon. This makes the transition always applicable, irrespective of the
+        // input symbol and the current state of the stack. Therefore, having any transition along
+        // with a full epsilon transition means the PDA will be nondeterministic.
+        PDATransition t5 = new PDATransition("q0", "A", "B", "A", "q1");
+        pda.addTransition(t5);
+        // transitions: [{(q0,,) -> (A,q1)}, {(q1,,) -> (A,q1)}, {(q0,A,B) -> (A,q1)}]
+        assertFalse(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().contains(t3));
+        assertTrue(pda.getNondeterministicTransitions().contains(t5));
+
+        pda.getTransitions().clear();
+        assertEquals(pda.getTransitions().size(), 0);
+        assertTrue(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().isEmpty());
+        // ----------------------------------------------------------------------------------------
+        // Two transitions with the same current state, input symbol and pop string but a
+        // different push string makes the PDA nondeterministic
+        PDATransition t6 = new PDATransition("q0", "a", "#", "A", "q1");
+        PDATransition t7 = new PDATransition("q0", "a", "#", "B", "q1");
+
+        pda.addTransition(t6);
+        pda.addTransition(t7);
+        // transitions: [{(q0,a,#) -> (A,q1)}, {(q0,a,#) -> (B,q1)}]
+        assertFalse(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().contains(t6));
+        assertTrue(pda.getNondeterministicTransitions().contains(t7));
+
+        pda.deleteTransition(t7);
+        // transitions: [{(q0,a,#) -> (A,q1)}]
+        assertTrue(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().isEmpty());
+        // ----------------------------------------------------------------------------------------
+        // Two transitions with the same current state, input symbol and pop string but a
+        // different new state makes the PDA nondeterministic
+        PDATransition t8 = new PDATransition("q0", "a", "#", "A", "q0");
+        pda.addTransition(t8);
+        // transitions: [{(q0,a,#) -> (A,q1)}, {(q0,a,#) -> (A,q0)}]
+        assertFalse(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().contains(t6));
+        assertTrue(pda.getNondeterministicTransitions().contains(t8));
+
+        pda.deleteTransition(t8);
+        // transitions: [{(q0,a,#) -> (A,q1)}]
+        assertTrue(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().isEmpty());
+        // ----------------------------------------------------------------------------------------
+        // Adding this transition causes nondeterminism since if you are in state q0, the input
+        // symbol is 'a' and there is a '#' on the top of the stack, you can apply either transition
+        PDATransition t9 = new PDATransition("q0", "a", "", "A", "q0");
+        pda.addTransition(t9);
+        // transitions: [{(q0,a,#) -> (A,q1)}, {(q0,a,) -> (A,q0)}]
+        assertFalse(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().contains(t6));
+        assertTrue(pda.getNondeterministicTransitions().contains(t9));
+
+        pda.deleteTransition(t9);
+        // transitions: [{(q0,a,#) -> (A,q1)}]
+        assertTrue(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().isEmpty());
+        // ----------------------------------------------------------------------------------------
+        // Adding this transition causes nondeterminism since if you are in state q0, the input
+        // symbol is 'a', the top of the stack is '#' and the element beneath that is 'A', you can
+        // apply either transition
+        PDATransition t10 = new PDATransition("q0", "a", "#A", "A", "q0");
+        pda.addTransition(t10);
+        // transitions: [{(q0,a,#) -> (A,q1)}, {(q0,a,#A) -> (A,q0)}]
+        assertFalse(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().contains(t6));
+        assertTrue(pda.getNondeterministicTransitions().contains(t10));
+
+        pda.deleteTransition(t10);
+        assertTrue(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().isEmpty());
+        // ----------------------------------------------------------------------------------------
+        // Same as the previous case but with epsilon as the input symbol for the transition with
+        // the multiple character pop string
+        PDATransition t11 = new PDATransition("q0", "", "#A", "A", "q0");
+        pda.addTransition(t11);
+        // transitions: [{(q0,a,#) -> (A,q1)}, {(q0,,#A) -> (A,q0)}]
+        assertFalse(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().contains(t6));
+        assertTrue(pda.getNondeterministicTransitions().contains(t11));
+
+        pda.getTransitions().clear();
+        assertTrue(pda.getNondeterministicTransitions().isEmpty());
+        // ----------------------------------------------------------------------------------------
+        // Same as the previous case but with epsilon as the input symbol for the transition with
+        // the single character pop string
+        PDATransition t12 = new PDATransition("q0", "", "#", "A", "q1");
+        PDATransition t13 = new PDATransition("q0", "a", "#A", "A", "q0");
+        pda.addTransition(t12);
+        pda.addTransition(t13);
+        // transitions: [{(q0,,#) -> (A,q1)}, {(q0,a,#A) -> (A,q0)}]
+        assertFalse(pda.getDeterministic());
+        assertTrue(pda.getNondeterministicTransitions().contains(t12));
+        assertTrue(pda.getNondeterministicTransitions().contains(t13));
+
+        // This transition does not contribute to the PDA being nondeterministic
+        PDATransition t14 = new PDATransition("q1", "", "", "", "q1");
+        pda.addTransition(t14);
+        assertFalse(pda.getNondeterministicTransitions().contains(t14));
+        assertEquals(pda.getNondeterministicTransitions().size(), 2);
     }
 }
