@@ -3,11 +3,12 @@
 PDA Simulator is a visual simulator for pushdown automata. Its intended use is as an educational
 tool for beginners. It includes support for multiple different but equivalent definitions. There are
 a number of functionalities such as loading & saving, quick run, step-by-step mode, animation mode
-and a transition table format.
+and a transition table format. For more details and/or to download the latest JAR file, you can visit
+[https://rambo37.github.io/PDA-Simulator-Web/](https://rambo37.github.io/PDA-Simulator-Web/).
 
 ## Getting started
 
-These instructions are written for Windows 10.
+These instructions are written for developers using Windows 10.
 
 ### Prerequisites
 
